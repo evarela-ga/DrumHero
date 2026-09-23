@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Drum Hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#0B0F1A; --panel:#151B2B; --panel2:#1D2438; --line:#2A3350;
+  --text:#E8ECF5; --muted:#8C96B0; --accent:#F5C842;
+  --hh:#F5C842; --sn:#F0453F; --tom:#3E8BFF; --ft:#3ECF8E; --cr:#B47BFF; --ki:#FF8A3D;
+  --good:#3ECF8E; --warn:#F5C842; --bad:#F0453F;
+  --display:'Bebas Neue','Arial Narrow',Impact,sans-serif;
+  --body:'Rubik',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.45;overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font-family:inherit;font-size:15px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+[hidden]{display:none!important}
+h1,h2,h3{margin:0;font-family:var(--display);font-weight:400;letter-spacing:.02em;text-wrap:balance}
+h1{font-size:34px;line-height:1}
+h2{font-size:26px}
+h3{font-size:20px}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.num{font-family:var(--display);font-variant-numeric:tabular-nums}
+.app{height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;position:relative}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+.scroll{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));border-bottom:1px solid var(--line);background:var(--panel)}
+.topbar .grow{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-weight:500;line-height:1.2;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:#1A1405;border-color:transparent;font-weight:700}
+.btn.ghost{background:transparent}
+.btn.sm{padding:7px 11px;font-size:13px;border-radius:8px}
+.btn.icon{padding:9px;width:40px;height:40px}
+.btn[disabled]{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500}
+
+/* ---- Perfil ---- */
+.profile{display:flex;align-items:center;gap:14px}
+.ring{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;position:relative;flex:none}
+.ring svg{position:absolute;inset:0}
+.ring .lvl{font-family:var(--display);font-size:26px;line-height:1}
+.xpbar{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden}
+.xpbar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--panel2);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--display);font-size:24px;font-weight:400;line-height:1}
+
+/* ---- Biblioteca ---- */
+.songs{display:flex;flex-direction:column;gap:10px}
+.song{display:grid;grid-template-columns:96px 1fr auto;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:left;width:100%}
+.song img{width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:var(--panel2);display:block}
+.song .t{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.song .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{font-size:11px;padding:2px 7px;border-radius:999px;background:var(--panel2);color:var(--muted);letter-spacing:.04em}
+.tag.ok{color:var(--good)}
+.tag.warn{color:var(--warn)}
+.stars{font-size:14px;letter-spacing:1px;color:var(--accent)}
+.stars .off{color:var(--line)}
+.daily{background:linear-gradient(135deg,#1F2540,#151B2B);border-color:#3A4470}
+.daily .big{font-family:var(--display);font-size:22px}
+
+/* ---- Play ---- */
+#play{background:#070A12}
+.video{position:relative;width:100%;aspect-ratio:16/9;background:#000;flex:none;max-height:38%}
+.video iframe,.video #yt{position:absolute;inset:0;width:100%;height:100%}
+.video .vmsg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:16px;background:#000;color:var(--muted);gap:10px}
+.stage{flex:1;position:relative;min-height:0;display:flex;flex-direction:column}
+canvas#hw{width:100%;height:100%;display:block;touch-action:none}
+.hud{position:absolute;left:0;right:0;top:0;padding:10px 12px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.hud .score{font-family:var(--display);font-size:30px;line-height:1}
+.hud .combo{font-family:var(--display);font-size:22px;color:var(--accent);line-height:1;text-align:right}
+.hud .sect{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.hud .mult{font-size:12px;color:var(--muted);text-align:right}
+.judge{position:absolute;left:0;right:0;top:44%;text-align:center;font-family:var(--display);font-size:40px;pointer-events:none;opacity:0;transition:opacity .15s,transform .15s;transform:translateY(8px)}
+.judge.show{opacity:1;transform:translateY(0)}
+.pads{display:flex;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:#0B0F1A;border-top:1px solid var(--line);flex:none}
+.pad{flex:1;height:54px;border-radius:10px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--muted);letter-spacing:.04em;user-select:none;background:var(--panel)}
+.pad b{font-family:var(--display);font-size:18px;font-weight:400;color:var(--text);line-height:1}
+.pad.lit{background:var(--c);color:#0B0F1A;border-color:var(--c)}
+.pad.lit b{color:#0B0F1A}
+.pad.kick{flex:1.4}
+.controls{display:flex;gap:8px;padding:8px 12px;background:var(--panel);border-top:1px solid var(--line);flex:none;align-items:center}
+.controls .grow{flex:1}
+.mic{width:8px;height:22px;border-radius:4px;background:var(--panel2);position:relative;overflow:hidden;flex:none}
+.mic i{position:absolute;left:0;right:0;bottom:0;background:var(--good);height:0}
+
+/* ---- Panel de preparación (overlay sobre el escenario) ---- */
+.panel{position:absolute;inset:0;overflow-y:auto;background:var(--bg);padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.seg{display:flex;background:var(--panel2);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;padding:8px 6px;border-radius:8px;font-size:13px;color:var(--muted);font-weight:500}
+.seg button.on{background:var(--panel);color:var(--text);box-shadow:0 1px 0 rgba(0,0,0,.4)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;color:var(--muted)}
+.kv{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.kv b{font-family:var(--display);font-size:22px;font-weight:400}
+input[type=range]{padding:0;height:28px;accent-color:var(--accent);background:transparent;border:0}
+.steps{display:flex;gap:6px;align-items:center}
+.steps .val{flex:1;text-align:center;font-family:var(--display);font-size:22px}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.legend div{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.legend i{width:14px;height:14px;border-radius:50%;background:var(--c);flex:none}
+.legend i.bar{width:22px;height:8px;border-radius:3px}
+
+/* ---- Resultados ---- */
+.result-stars{font-size:52px;letter-spacing:6px;color:var(--accent);text-align:center;line-height:1}
+.result-stars .off{color:var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ach{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;background:var(--panel2)}
+.ach .ic{width:36px;height:36px;border-radius:10px;background:var(--panel);display:grid;place-items:center;font-family:var(--display);font-size:18px;flex:none;color:var(--accent)}
+.ach.locked{opacity:.45}
+.ach.locked .ic{color:var(--muted)}
+.selfrate{display:flex;gap:8px;justify-content:center}
+.selfrate button{font-size:28px;padding:8px 12px;border-radius:10px;background:var(--panel2)}
+.selfrate button.on{background:var(--accent);color:#1A1405}
+
+/* ---- Modal ---- */
+.modal{position:absolute;inset:0;background:rgba(5,8,16,.7);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.modal .sheet{background:var(--panel);border-radius:18px 18px 0 0;width:100%;max-height:92%;overflow-y:auto;padding:16px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;border:1px solid var(--line)}
+.sections{display:flex;flex-direction:column;gap:6px}
+.secrow{display:grid;grid-template-columns:1fr 62px 1fr auto;gap:6px;align-items:center}
+.secrow input,.secrow select{padding:7px 8px;font-size:13px}
+.toast{position:absolute;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:10px 14px;border-radius:10px;font-size:14px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%}
+.toast.show{opacity:1}
+.cd{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-size:120px;color:var(--accent);pointer-events:none;text-shadow:0 0 40px rgba(245,200,66,.4)}
+.banner{background:#3A2A0C;border-bottom:1px solid #7A5A1A;color:#FFE9B0;padding:10px 16px;font-size:13px;line-height:1.4}
+.banner code{background:rgba(0,0,0,.3);padding:1px 5px;border-radius:4px}
+.spbox{position:absolute;inset:0;display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(135deg,#0F1A14,#0B0F1A)}
+.spbox img{width:96px;height:96px;border-radius:8px;object-fit:cover;background:var(--panel2);flex:none}
+.spbox .t{font-weight:500;font-size:16px}
+.spbox .bar{height:4px;background:var(--panel2);border-radius:2px;margin-top:8px;overflow:hidden}
+.spbox .bar i{display:block;height:100%;width:0;background:#1DB954}
+.sp-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#1DB954}
+.sp-pill::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor}
+.copyrow{display:flex;gap:6px;align-items:center}
+.copyrow code{flex:1;background:var(--panel2);padding:8px 10px;border-radius:8px;font-size:12px;word-break:break-all}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (min-width:900px){.app{max-width:600px}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<div class="banner" id="fileBanner" hidden>Abriste el archivo directamente desde el disco, y así YouTube y Spotify no pueden reproducir. Cerrá esta pestaña y abrí <code>Iniciar DrumHero.bat</code> (Windows) o <code>iniciar-drumhero.command</code> (Mac), que están en la misma carpeta: levantan el juego en <code>http://127.0.0.1:8765</code>.</div>
+
+<!-- ============ INICIO ============ -->
+<section class="screen" id="home">
+  <div class="topbar">
+    <div class="grow"><h1>Drum Hero</h1><p class="muted small">Tocá tu batería sobre YouTube</p></div>
+    <button class="btn sm" id="btnHelp">Ayuda</button>
+  </div>
+  <div class="scroll">
+    <div class="card">
+      <div class="profile">
+        <div class="ring" id="ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="#1D2438" stroke-width="5"/><circle id="ringArc" cx="32" cy="32" r="28" fill="none" stroke="#F5C842" stroke-width="5" stroke-linecap="round" stroke-dasharray="176" stroke-dashoffset="176" transform="rotate(-90 32 32)"/></svg><span class="lvl" id="lvlNum">1</span></div>
+        <div class="grow" style="flex:1;min-width:0">
+          <div class="eyebrow">Nivel</div>
+          <h2 id="lvlTitle">Novato</h2>
+          <p class="muted small" id="xpText">0 XP</p>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="stSongs">0</b><span class="muted small">temas tocados</span></div>
+        <div class="stat"><b id="stStreak">0</b><span class="muted small">días seguidos</span></div>
+        <div class="stat"><b id="stStars">0</b><span class="muted small">estrellas</span></div>
+      </div>
+    </div>
+
+    <div class="card daily" id="dailyCard">
+      <div class="eyebrow">Desafío del día</div>
+      <div class="big" id="dailyTitle">—</div>
+      <p class="muted small" id="dailyDesc"></p>
+      <div class="row"><button class="btn primary sm" id="btnDaily">Aceptar desafío</button><span class="tag" id="dailyState"></span></div>
+    </div>
+
+    <div class="row" style="justify-content:space-between">
+      <h2>Biblioteca</h2>
+      <button class="btn sm primary" id="btnAdd">+ Agregar tema</button>
+    </div>
+    <div class="songs" id="songList"></div>
+
+    <div class="card">
+      <div class="eyebrow">Logros</div>
+      <div id="achList" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+    <p class="muted small">Los charts de la biblioteca son versiones simplificadas para practicar; el tempo y el inicio de cada video se ajustan en la calibración. Tu progreso queda guardado en este navegador.</p>
+  </div>
+</section>
+
+<!-- ============ TOCAR ============ -->
+<section class="screen" id="play" hidden>
+  <div class="topbar" style="padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:8px">
+    <button class="btn icon" id="btnBack" aria-label="Volver">←</button>
+    <div class="grow" style="min-width:0"><div id="pTitle" style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div><div class="muted small" id="pSub"></div></div>
+    <button class="btn icon" id="btnFs" aria-label="Pantalla completa">⤢</button>
+  </div>
+  <div class="video" id="videoBox">
+    <div id="yt"></div>
+    <div class="spbox" id="spBox" hidden><img id="spArt" alt=""><div style="min-width:0;flex:1"><div class="sp-pill">Spotify</div><div class="t" id="spName">—</div><div class="muted small" id="spArtist"></div><div class="bar"><i id="spProg"></i></div><div class="muted small" id="spStatus" style="margin-top:6px"></div></div></div>
+    <div class="vmsg" id="vmsg" hidden><div><b id="vmsgTitle">Este video no se puede reproducir acá.</b><br><span class="small" id="vmsgText">El canal no permite verlo embebido. Elegí otro video del mismo tema.</span><br><button class="btn primary sm" id="btnPickFromErr" style="margin-top:10px">Elegir otro video</button></div></div>
+  </div>
+  <div class="stage" id="stage">
+    <canvas id="hw"></canvas>
+    <div class="hud"><div><div class="score num" id="hScore">0</div><div class="sect" id="hSect"></div></div><div><div class="combo" id="hCombo"></div><div class="mult" id="hMult"></div></div></div>
+    <div class="judge" id="judge"></div>
+    <div class="cd" id="cd" hidden></div>
+
+    <!-- Panel de preparación -->
+    <div class="panel" id="setup">
+      <div class="card">
+        <div class="eyebrow">Cómo querés tocar</div>
+        <div class="seg" id="segInput">
+          <button data-v="mic">Micrófono</button>
+          <button data-v="keys">Teclado / táctil</button>
+          <button data-v="guide">Solo guía</button>
+        </div>
+        <p class="muted small" id="inputHelp"></p>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Dificultad</div>
+        <div class="seg" id="segDiff">
+          <button data-v="easy">Fácil</button>
+          <button data-v="normal">Normal</button>
+          <button data-v="pro">Pro</button>
+        </div>
+        <p class="muted small" id="diffHelp"></p>
+        <div class="eyebrow" style="margin-top:4px">Velocidad del video</div>
+        <div class="seg" id="segRate">
+          <button data-v="0.5">50%</button>
+          <button data-v="0.75">75%</button>
+          <button data-v="1">100%</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Fuente del audio</div>
+        <div class="seg" id="segSrc"><button data-v="yt">YouTube</button><button data-v="sp">Spotify</button></div>
+        <div id="srcYt">
+          <div class="row" style="justify-content:space-between"><p class="muted small" id="vidInfo" style="flex:1;min-width:0"></p><button class="btn sm" id="btnPick">Cambiar video</button></div>
+        </div>
+        <div id="srcSp" hidden style="display:flex;flex-direction:column;gap:8px">
+          <div class="row" style="justify-content:space-between"><span class="small" id="spAcct"></span><button class="btn sm" id="btnSpSetup">Configurar</button></div>
+          <div class="row"><button class="btn sm primary" id="btnSpLogin">Iniciar sesión en Spotify</button></div>
+          <div class="row" style="justify-content:space-between"><p class="muted small" id="spTrackInfo" style="flex:1;min-width:0">Sin canción elegida</p><button class="btn sm" id="btnSpPick">Elegir canción</button></div>
+          <p class="muted small">Con Spotify no se puede bajar la velocidad; la práctica lenta queda para YouTube.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><div class="eyebrow">Calibración</div><span class="tag" id="calState"></span></div>
+        <p class="muted small">Dale play al video. Cuando entre la batería, apretá <b>Marcar el 1</b> justo en el primer golpe. Si el tempo está mal, tocá el tempo con el botón siguiendo la canción.</p>
+        <div class="row">
+          <button class="btn primary" id="btnMark">Marcar el 1</button>
+          <button class="btn" id="btnTap">Tocar tempo</button>
+          <button class="btn ghost sm" id="btnPlayPause">▶ Play</button>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>Inicio del chart (seg)</label>
+            <div class="steps"><button class="btn sm" data-off="-0.1">−.1</button><button class="btn sm" data-off="-0.02">−.02</button><div class="val" id="offVal">0.00</div><button class="btn sm" data-off="0.02">+.02</button><button class="btn sm" data-off="0.1">+.1</button></div></div>
+          <div class="field"><label>Tempo (BPM)</label>
+            <div class="steps"><button class="btn sm" data-bpm="-1">−1</button><div class="val" id="bpmVal">120</div><button class="btn sm" data-bpm="1">+1</button></div></div>
+        </div>
+        <div class="field"><label class="kv"><span>Ajuste de latencia del micrófono</span><span class="num" id="latVal">0 ms</span></label><input type="range" id="latency" min="-250" max="250" step="5" value="0"></div>
+        <div class="field"><label class="kv"><span>Sensibilidad del micrófono</span><span class="num" id="sensVal">50</span></label><input type="range" id="sens" min="5" max="100" step="1" value="50"></div>
+        <label class="row small muted" style="gap:8px"><input type="checkbox" id="metro" style="width:auto"> Metrónomo de prueba (clic en cada tiempo)</label>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Leyenda</div>
+        <div class="legend">
+          <div><i style="--c:var(--hh)"></i>Hi-hat / Ride</div><div><i style="--c:var(--sn)"></i>Caja</div><div><i style="--c:var(--tom)"></i>Tom</div>
+          <div><i style="--c:var(--ft)"></i>Tom de piso</div><div><i style="--c:var(--cr)"></i>Crash</div><div><i class="bar" style="--c:var(--ki)"></i>Bombo</div>
+        </div>
+        <p class="muted small">Teclas: D hi-hat · F caja · J tom · K tom de piso · L crash · Espacio bombo.</p>
+      </div>
+      <button class="btn primary" id="btnStart" style="font-size:18px;padding:14px">▶ Tocar</button>
+    </div>
+
+    <!-- Resultados -->
+    <div class="panel" id="results" hidden>
+      <div class="card" style="align-items:center;text-align:center">
+        <div class="eyebrow" id="rTitle">Resultado</div>
+        <div class="result-stars" id="rStars"></div>
+        <h2 id="rVerdict">—</h2>
+        <p class="muted small" id="rSub"></p>
+      </div>
+      <div class="card" id="selfRateBox" hidden>
+        <div class="eyebrow">¿Cómo te salió?</div>
+        <div class="selfrate" id="selfRate"><button data-s="1">★</button><button data-s="2">★★</button><button data-s="3">★★★</button></div>
+        <p class="muted small" style="text-align:center">En modo guía vos calificás tu ejecución.</p>
+      </div>
+      <div class="grid2">
+        <div class="stat"><b id="rScore">0</b><span class="muted small">puntos</span></div>
+        <div class="stat"><b id="rAcc">0%</b><span class="muted small">precisión</span></div>
+        <div class="stat"><b id="rCombo">0</b><span class="muted small">combo máximo</span></div>
+        <div class="stat"><b id="rXp">+0</b><span class="muted small">XP</span></div>
+      </div>
+      <div class="card"><div class="eyebrow">Golpes</div><div class="row" id="rBreak"></div></div>
+      <div id="rAch" style="display:flex;flex-direction:column;gap:6px"></div>
+      <div class="row"><button class="btn primary" id="btnRetry" style="flex:1">Otra vez</button><button class="btn" id="btnHome" style="flex:1">Biblioteca</button></div>
+    </div>
+  </div>
+  <div class="pads" id="pads"></div>
+  <div class="controls" id="controls" hidden>
+    <button class="btn sm" id="btnPause">⏸ Pausa</button>
+    <button class="btn sm ghost" id="btnQuit">Terminar</button>
+    <div class="grow"></div>
+    <div class="mic" id="micMeter" title="Nivel del micrófono"><i id="micLvl"></i></div>
+  </div>
+</section>
+
+<!-- ============ MODAL: AGREGAR TEMA ============ -->
+<div class="modal" id="addModal" hidden>
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between"><h2 id="addTitle">Agregar tema</h2><button class="btn icon ghost" id="btnCloseAdd" aria-label="Cerrar">✕</button></div>
+    <div class="field"><label>Tema y artista</label><div class="row" style="flex-wrap:nowrap"><input id="aName" placeholder="Ej. Persiana Americana - Soda Stereo"><a class="btn" id="aSearch" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=">Buscar</a></div><p class="muted small">"Buscar" abre YouTube en otra pestaña. Elegí el video, copiá el link y pegalo abajo.</p></div>
+    <div class="field"><label>Video de YouTube</label><div class="row" style="flex-wrap:nowrap"><input id="aUrl" placeholder="https://www.youtube.com/watch?v=..."><button class="btn" id="aPick">Elegir</button></div><p class="muted small" id="aUrlInfo">Pegá el link, o tocá "Elegir" para buscar desde acá.</p></div>
+    <div class="field"><label>O canción de Spotify</label><div class="row" style="justify-content:space-between"><span class="small" id="aSpInfo" style="flex:1;min-width:0">Ninguna</span><button class="btn" id="aSpPick">Elegir en Spotify</button></div></div>
+    <div class="grid2">
+      <div class="field"><label>Tempo (BPM)</label><div class="row" style="flex-wrap:nowrap"><input id="aBpm" type="number" min="40" max="240" value="120"><button class="btn sm" id="aTap">Tap</button></div></div>
+      <div class="field"><label>Groove base</label><select id="aGroove"></select></div>
+    </div>
+    <div class="field"><label>Estructura (opcional)</label>
+      <div class="sections" id="aSections"></div>
+      <div class="row"><button class="btn sm" id="aAddSec">+ Sección</button><span class="muted small">Sin estructura se usa el groove base en loop.</span></div>
+    </div>
+    <div class="field"><label>Cantidad de compases si no hay estructura</label><input id="aBars" type="number" min="4" max="400" value="64"></div>
+    <button class="btn primary" id="aSave">Guardar tema</button>
+    <button class="btn ghost" id="aDelete" hidden style="color:var(--bad)">Eliminar tema</button>
+  </div>
+</div>
+
+<!-- ============ MODAL: SPOTIFY ============ -->
+<div class="modal" id="spModal" hidden>
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between"><h2>Conectar Spotify</h2><button class="btn icon ghost" id="btnCloseSp" aria-label="Cerrar">✕</button></div>
+    <p class="small">Hace falta una cuenta <b>Premium</b> y una app gratuita en el panel de desarrolladores de Spotify (lleva dos minutos, se hace una sola vez):</p>
+    <p class="small"><b>1.</b> Entrá a <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener" style="color:var(--accent)">developer.spotify.com/dashboard</a> con tu cuenta y creá una app (nombre y descripción libres).</p>
+    <p class="small"><b>2.</b> En "Redirect URIs" pegá exactamente esta dirección y guardá:</p>
+    <div class="copyrow"><code id="spRedirect"></code><button class="btn sm" id="spCopyRedirect">Copiar</button></div>
+    <p class="small"><b>3.</b> En "APIs used" marcá <b>Web Playback SDK</b> y <b>Web API</b>. Copiá el <b>Client ID</b> de la app y pegalo acá:</p>
+    <div class="field"><input id="spClient" placeholder="Client ID"><p class="muted small" id="spClientInfo"></p></div>
+    <button class="btn primary" id="spSaveClient">Guardar y conectar</button>
+    <button class="btn ghost small" id="spLogout" style="color:var(--bad)">Cerrar sesión de Spotify</button>
+  </div>
+</div>
+
+<!-- ============ MODAL: ELEGIR VIDEO ============ -->
+<div class="modal" id="vidModal" hidden>
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between"><h2 id="vTitle">Elegir video</h2><button class="btn icon ghost" id="btnCloseVid" aria-label="Cerrar">✕</button></div>
+    <div class="field"><label id="vQueryLabel">Buscar en YouTube</label><div class="row" style="flex-wrap:nowrap"><input id="vQuery" placeholder="Tema y artista"><button class="btn primary" id="vSearch">Buscar</button></div></div>
+    <div id="vResults" class="songs"></div>
+    <div class="field" id="vUrlBox"><label>O pegá un link de YouTube</label><div class="row" style="flex-wrap:nowrap"><input id="vUrl" placeholder="https://www.youtube.com/watch?v=..."><button class="btn" id="vUse">Usar</button></div><p class="muted small" id="vUrlInfo"></p></div>
+    <details id="vKeyBox"><summary class="muted small" style="cursor:pointer">Búsqueda dentro del juego (clave de YouTube Data API)</summary>
+      <div class="field" style="margin-top:8px"><input id="vKey" placeholder="AIza..."><p class="muted small">Con una clave gratuita de la YouTube Data API v3 (Google Cloud Console → Credenciales → Clave de API) el buscador muestra resultados acá mismo y filtra solo los videos que se pueden reproducir embebidos. Sin clave, "Buscar" abre YouTube en otra pestaña y pegás el link.</p><button class="btn sm" id="vKeySave">Guardar clave</button></div>
+    </details>
+  </div>
+</div>
+
+<!-- ============ MODAL: AYUDA ============ -->
+<div class="modal" id="helpModal" hidden>
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between"><h2>Cómo funciona</h2><button class="btn icon ghost" id="btnCloseHelp" aria-label="Cerrar">✕</button></div>
+    <p><b>0.</b> Abrí siempre el juego con el lanzador ("Iniciar DrumHero.bat" en Windows, "iniciar-drumhero.command" en Mac). Si abrís el archivo directamente, YouTube y Spotify no reproducen.</p>
+    <p><b>1.</b> Elegí un tema de la biblioteca o agregá uno. El audio puede venir de YouTube (cualquier tema tiene "Cambiar video"; si un video no se reproduce porque el canal lo bloquea, elegí otro, como un audio oficial o una versión en vivo) o de Spotify (con cuenta Premium: en "Fuente del audio" elegí Spotify, tocá "Configurar" y seguí los tres pasos; después buscás y elegís la canción desde el juego).</p>
+    <p><b>2.</b> Calibrá: reproducí el video y marcá el primer golpe de batería. Eso alinea las notas con la canción. Se guarda para la próxima vez.</p>
+    <p><b>3.</b> Tocá. Las notas caen por su pista y hay que pegarle cuando cruzan la línea. El bombo es la barra naranja. Con micrófono, el juego detecta el momento de cada golpe (no distingue qué tambor, así que golpeá lo que indica). Con teclado o táctil, cada pista tiene su tecla o pad. En "Solo guía" no hay puntaje: te sirve de partitura animada.</p>
+    <p><b>4.</b> Sumás puntos por golpe a tiempo, combos multiplican, y cada tema da 1 a 3 estrellas y XP. Practicar a 50% o 75% también suma (un poco menos).</p>
+    <p class="muted small">Consejos: usá auriculares para que el micrófono no escuche el video. Si los golpes salen siempre "tarde" o "temprano", movete el ajuste de latencia. En Chrome de escritorio abrí el archivo directamente; en el celular necesitás servirlo desde una web (https) para que funcione el micrófono.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+'use strict';
+/* =====================================================================
+   DATOS: grooves, fills y biblioteca
+   Grilla de 16 semicorcheas por compás de 4/4. 'x' = golpe, '.' = nada.
+   Pistas: hh (hi-hat), rd (ride, se dibuja en la pista del hi-hat), sn (caja),
+   tom, ft (tom de piso), cr (crash), ki (bombo).
+===================================================================== */
+const LANES=[
+  {id:'hh',name:'Hi-hat',key:'d',color:'#F5C842',sound:880},
+  {id:'sn',name:'Caja',key:'f',color:'#F0453F',sound:330},
+  {id:'tom',name:'Tom',key:'j',color:'#3E8BFF',sound:220},
+  {id:'ft',name:'Piso',key:'k',color:'#3ECF8E',sound:150},
+  {id:'cr',name:'Crash',key:'l',color:'#B47BFF',sound:1200}
+];
+const KICK={id:'ki',name:'Bombo',key:' ',color:'#FF8A3D',sound:70};
+const LANE_INDEX={hh:0,rd:0,sn:1,tom:2,ft:3,cr:4};
+
+const GROOVES={
+  rest:   {label:'Silencio (esperar)'},
+  basic:  {label:'Rock básico (bombo 1 y 3)',        hh:'x.x.x.x.x.x.x.x.', sn:'....x.......x...', ki:'x.......x.......'},
+  rock8:  {label:'Rock (bombo 1, 3 y "y" de 3)',      hh:'x.x.x.x.x.x.x.x.', sn:'....x.......x...', ki:'x.......x.x.....'},
+  rockB:  {label:'Rock (bombo 1, "y" de 2 y 3)',      hh:'x.x.x.x.x.x.x.x.', sn:'....x.......x...', ki:'x.....x.x.......'},
+  four:   {label:'Four on the floor (disco/pop)',    hh:'x.x.x.x.x.x.x.x.', sn:'....x.......x...', ki:'x...x...x...x...'},
+  half:   {label:'Half time',                        hh:'x.x.x.x.x.x.x.x.', sn:'........x.......', ki:'x.....x.........'},
+  ride8:  {label:'Rock con ride',                    rd:'x.x.x.x.x.x.x.x.', sn:'....x.......x...', ki:'x.......x.x.....'},
+  hh16:   {label:'Hi-hat en semicorcheas',           hh:'xxxxxxxxxxxxxxxx', sn:'....x.......x...', ki:'x.......x.x.....'},
+  stomp:  {label:'Boom boom clap',                   ki:'x...x...........', sn:'........x.......'},
+  floor4: {label:'Piso en negras (marcha)',          ft:'x...x...x...x...', ki:'x...x...x...x...'},
+  kick4:  {label:'Solo bombo en negras',             ki:'x...x...x...x...'},
+  punk:   {label:'Punk / rápido',                    hh:'x.x.x.x.x.x.x.x.', sn:'..x...x...x...x.', ki:'x...x...x...x...'},
+  funk:   {label:'Funk básico',                      hh:'x.x.x.x.x.x.x.x.', sn:'....x......x.x..', ki:'x.x.......x.....'}
+};
+const FILLS={
+  A:{sn:'........xxxx....', tom:'............xx..', ft:'..............xx'},
+  B:{sn:'............x.x.', tom:'..............x.'},
+  C:{sn:'........xx......', tom:'..........xx....', ft:'............xxxx'},
+  D:{sn:'..........x.x.x.', ft:'..............x.'}
+};
+
+/* Biblioteca inicial. Los IDs son de videos oficiales; offset 0 = sin calibrar. */
+const LIBRARY=[
+  {id:'misterioso',title:'Tu misterioso alguien',artist:'Miranda!',yt:'ETJcV3rPO_U',bpm:128,
+   sections:[{n:'Intro',b:8,g:'four'},{n:'Estrofa',b:16,g:'four',f:'B'},{n:'Pre',b:8,g:'four',f:'B'},{n:'Estribillo',b:16,g:'four',f:'A',c:1},{n:'Estrofa',b:16,g:'four',f:'B'},{n:'Pre',b:8,g:'four',f:'B'},{n:'Estribillo',b:16,g:'four',f:'A',c:1},{n:'Puente',b:8,g:'half',f:'D'},{n:'Estribillo final',b:24,g:'four',f:'A',c:1}]},
+  {id:'backinblack',title:'Back in Black',artist:'AC/DC',yt:'pAgnJDJN4VA',bpm:94,
+   sections:[{n:'Intro',b:2,g:'rest'},{n:'Intro',b:8,g:'rockB',f:'B',c:1},{n:'Estrofa',b:16,g:'rockB',f:'A',c:1},{n:'Estribillo',b:8,g:'rock8',f:'C',c:1},{n:'Estrofa',b:16,g:'rockB',f:'A',c:1},{n:'Estribillo',b:8,g:'rock8',f:'C',c:1},{n:'Solo',b:16,g:'rock8',f:'A',c:1},{n:'Estribillo',b:8,g:'rock8',f:'C',c:1},{n:'Final',b:12,g:'rockB',f:'A',c:1}]},
+  {id:'sevennation',title:'Seven Nation Army',artist:'The White Stripes',yt:'0J2QdDbelmY',bpm:124,
+   sections:[{n:'Intro',b:8,g:'rest'},{n:'Estrofa',b:16,g:'floor4'},{n:'Estribillo',b:8,g:'basic',f:'A',c:1},{n:'Estrofa',b:16,g:'floor4'},{n:'Estribillo',b:8,g:'basic',f:'A',c:1},{n:'Solo',b:16,g:'rock8',f:'C',c:1},{n:'Estrofa',b:16,g:'floor4'},{n:'Final',b:16,g:'basic',f:'A',c:1}]},
+  {id:'musicaligera',title:'De Música Ligera',artist:'Soda Stereo',yt:'T_FkEw27XJ0',bpm:127,
+   sections:[{n:'Intro',b:8,g:'basic',f:'B',c:1},{n:'Estrofa',b:16,g:'rock8',f:'A',c:1},{n:'Estribillo',b:8,g:'rock8',f:'C',c:1},{n:'Estrofa',b:16,g:'rock8',f:'A',c:1},{n:'Estribillo',b:8,g:'rock8',f:'C',c:1},{n:'Puente',b:8,g:'half',f:'A',c:1},{n:'Final',b:16,g:'rock8',f:'C',c:1}]},
+  {id:'billiejean',title:'Billie Jean',artist:'Michael Jackson',yt:'Zi_XLOBDo_Y',bpm:117,
+   sections:[{n:'Intro',b:8,g:'four'},{n:'Estrofa',b:16,g:'four'},{n:'Pre',b:8,g:'four',f:'B'},{n:'Estribillo',b:8,g:'four',c:1},{n:'Estrofa',b:16,g:'four'},{n:'Pre',b:8,g:'four',f:'B'},{n:'Estribillo',b:16,g:'four',c:1},{n:'Final',b:24,g:'four'}]},
+  {id:'teenspirit',title:'Smells Like Teen Spirit',artist:'Nirvana',yt:'hTWKbfoikeg',bpm:117,
+   sections:[{n:'Intro guitarra',b:4,g:'rest'},{n:'Intro',b:8,g:'rock8',f:'A',c:1},{n:'Estrofa',b:16,g:'half'},{n:'Pre',b:8,g:'basic',f:'D'},{n:'Estribillo',b:16,g:'rock8',f:'A',c:1},{n:'Estrofa',b:16,g:'half'},{n:'Pre',b:8,g:'basic',f:'D'},{n:'Estribillo',b:16,g:'rock8',f:'A',c:1},{n:'Solo',b:16,g:'rock8',f:'C',c:1},{n:'Final',b:20,g:'rock8',f:'A',c:1}]},
+  {id:'anotherone',title:'Another One Bites the Dust',artist:'Queen',yt:'rY0WxgSXdEE',bpm:110,
+   sections:[{n:'Intro',b:8,g:'rock8'},{n:'Estrofa',b:16,g:'rock8',f:'B'},{n:'Estribillo',b:8,g:'rock8',f:'A',c:1},{n:'Estrofa',b:16,g:'rock8',f:'B'},{n:'Estribillo',b:8,g:'rock8',f:'A',c:1},{n:'Puente',b:8,g:'kick4'},{n:'Final',b:24,g:'rock8',f:'A',c:1}]},
+  {id:'highway',title:'Highway to Hell',artist:'AC/DC',yt:'l482T0yNkeo',bpm:116,
+   sections:[{n:'Intro',b:4,g:'rest'},{n:'Intro',b:8,g:'basic',c:1},{n:'Estrofa',b:16,g:'basic',f:'B'},{n:'Estribillo',b:8,g:'rock8',f:'A',c:1},{n:'Estrofa',b:16,g:'basic',f:'B'},{n:'Estribillo',b:8,g:'rock8',f:'A',c:1},{n:'Solo',b:16,g:'rock8',f:'C',c:1},{n:'Final',b:16,g:'rock8',f:'A',c:1}]},
+  {id:'wewillrock',title:'We Will Rock You',artist:'Queen',yt:'-tJYN-eG1zk',bpm:81,
+   sections:[{n:'Estrofa',b:8,g:'stomp'},{n:'Estribillo',b:8,g:'stomp'},{n:'Estrofa',b:8,g:'stomp'},{n:'Estribillo',b:8,g:'stomp'},{n:'Estrofa',b:8,g:'stomp'},{n:'Estribillo',b:12,g:'stomp'}]},
+  {id:'entersandman',title:'Enter Sandman',artist:'Metallica',yt:'CD-E-LDc384',bpm:123,
+   sections:[{n:'Intro',b:8,g:'rest'},{n:'Intro',b:16,g:'ride8',f:'A',c:1},{n:'Estrofa',b:16,g:'rock8',f:'B'},{n:'Pre',b:8,g:'basic',f:'D'},{n:'Estribillo',b:16,g:'rock8',f:'A',c:1},{n:'Estrofa',b:16,g:'rock8',f:'B'},{n:'Pre',b:8,g:'basic',f:'D'},{n:'Estribillo',b:16,g:'rock8',f:'A',c:1},{n:'Solo',b:24,g:'rock8',f:'C',c:1},{n:'Final',b:24,g:'rock8',f:'A',c:1}]},
+  {id:'comeasyouare',title:'Come As You Are',artist:'Nirvana',yt:'vabnZ9-ex7o',bpm:120,
+   sections:[{n:'Intro',b:4,g:'rest'},{n:'Intro',b:8,g:'basic'},{n:'Estrofa',b:16,g:'basic',f:'B'},{n:'Estribillo',b:8,g:'rock8',f:'A',c:1},{n:'Estrofa',b:16,g:'basic',f:'B'},{n:'Estribillo',b:8,g:'rock8',f:'A',c:1},{n:'Puente',b:8,g:'half',f:'D',c:1},{n:'Solo',b:16,g:'rock8',f:'C',c:1},{n:'Final',b:20,g:'rock8',f:'A',c:1}]},
+  {id:'jijiji',title:'Jijiji',artist:'Patricio Rey y sus Redonditos de Ricota',yt:'CnJqYsSOgfg',bpm:134,
+   sections:[{n:'Intro',b:8,g:'rest'},{n:'Intro',b:8,g:'basic',c:1},{n:'Estrofa',b:16,g:'basic',f:'B'},{n:'Estribillo',b:16,g:'rock8',f:'A',c:1},{n:'Estrofa',b:16,g:'basic',f:'B'},{n:'Estribillo',b:16,g:'rock8',f:'A',c:1},{n:'Final',b:24,g:'rock8',f:'C',c:1}]},
+  {id:'demoliendo',title:'Demoliendo Hoteles',artist:'Charly García',yt:'Mm3IgrVsu24',bpm:138,
+   sections:[{n:'Intro',b:8,g:'basic',c:1},{n:'Estrofa',b:16,g:'basic',f:'B'},{n:'Estribillo',b:8,g:'rock8',f:'A',c:1},{n:'Estrofa',b:16,g:'basic',f:'B'},{n:'Estribillo',b:8,g:'rock8',f:'A',c:1},{n:'Solo',b:16,g:'rock8',f:'C',c:1},{n:'Final',b:16,g:'rock8',f:'A',c:1}]}
+];
+
+const LEVELS=[[0,'Novato'],[300,'Baquetero'],[800,'Groovero'],[1600,'Metrónomo humano'],[2800,'Rompe parches'],[4500,'Bestia del ritmo'],[7000,'Leyenda del garage']];
+const ACHIEVEMENTS=[
+  {id:'first',ic:'1',name:'Primer tema',desc:'Terminaste tu primera canción.',test:(s)=>s.plays>=1},
+  {id:'cal',ic:'⏱',name:'Afinado',desc:'Calibraste el inicio de un tema.',test:(s)=>s.calibrated>=1},
+  {id:'combo25',ic:'25',name:'Racha de 25',desc:'Combo de 25 golpes seguidos.',test:(s)=>s.bestCombo>=25},
+  {id:'combo100',ic:'100',name:'Máquina',desc:'Combo de 100 golpes seguidos.',test:(s)=>s.bestCombo>=100},
+  {id:'three',ic:'★',name:'Perfecto',desc:'3 estrellas en un tema.',test:(s)=>s.threeStars>=1},
+  {id:'five',ic:'5',name:'Repertorio',desc:'5 temas distintos tocados.',test:(s)=>Object.keys(s.songs).filter(k=>s.songs[k].plays>0).length>=5},
+  {id:'slow',ic:'½',name:'Paciencia',desc:'Practicaste un tema a velocidad reducida.',test:(s)=>s.slowPlays>=1},
+  {id:'full',ic:'1x',name:'A tempo',desc:'Terminaste un tema al 100% con 2 estrellas o más.',test:(s)=>s.fullSpeed2>=1},
+  {id:'streak3',ic:'3d',name:'Hábito',desc:'3 días seguidos practicando.',test:(s)=>s.streak>=3},
+  {id:'streak7',ic:'7d',name:'Semana de fuego',desc:'7 días seguidos practicando.',test:(s)=>s.streak>=7},
+  {id:'custom',ic:'+',name:'DJ',desc:'Agregaste un tema propio.',test:(s)=>s.custom.length>=1},
+  {id:'daily',ic:'☀',name:'Desafiante',desc:'Completaste un desafío del día.',test:(s)=>s.dailyDone>=1},
+  {id:'pro',ic:'P',name:'Pro',desc:'2 estrellas en dificultad Pro.',test:(s)=>s.pro2>=1}
+];
+
+/* =====================================================================
+   ESTADO PERSISTENTE
+===================================================================== */
+const SKEY='drumhero.v1';
+const defaultState=()=>({xp:0,plays:0,calibrated:0,bestCombo:0,threeStars:0,slowPlays:0,fullSpeed2:0,streak:0,lastDay:null,dailyDone:0,dailyDoneDay:null,pro2:0,songs:{},custom:[],ach:[],prefs:{input:'mic',diff:'normal',rate:'1',latency:0,sens:50}});
+let S=defaultState();
+function load(){try{const r=localStorage.getItem(SKEY);if(r){S=Object.assign(defaultState(),JSON.parse(r));S.prefs=Object.assign(defaultState().prefs,S.prefs||{});}}catch(e){}}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify(S));}catch(e){}}
+function songState(id){return S.songs[id]||(S.songs[id]={plays:0,best:0,stars:0,offset:null,bpm:null,yt:null});}
+function videoIdFor(song){const ss=S.songs[song.id];return (ss&&ss.yt)||song.yt;}
+function allSongs(){return LIBRARY.concat(S.custom);}
+function songById(id){return allSongs().find(s=>s.id===id);}
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function touchStreak(){const t=today();if(S.lastDay===t)return;const y=new Date();y.setDate(y.getDate()-1);const ys=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');S.streak=(S.lastDay===ys)?S.streak+1:1;S.lastDay=t;}
+function levelInfo(xp){let i=0;for(let k=0;k<LEVELS.length;k++)if(xp>=LEVELS[k][0])i=k;const cur=LEVELS[i][0],next=LEVELS[i+1]?LEVELS[i+1][0]:null;return{n:i+1,title:LEVELS[i][1],cur,next,frac:next?(xp-cur)/(next-cur):1};}
+
+/* =====================================================================
+   UTILIDADES UI
+===================================================================== */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+let toastT;function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200);}
+function starsHtml(n,max=3){let h='';for(let i=1;i<=max;i++)h+=`<span class="${i<=n?'':'off'}">★</span>`;return h;}
+function parseYt(s){if(!s)return null;s=s.trim();const m=s.match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([A-Za-z0-9_-]{11})/);if(m)return m[1];if(/^[A-Za-z0-9_-]{11}$/.test(s))return s;return null;}
+function seg(el,value,onChange){$$('button',el).forEach(b=>{b.classList.toggle('on',b.dataset.v===String(value));b.onclick=()=>{$$('button',el).forEach(x=>x.classList.remove('on'));b.classList.add('on');onChange(b.dataset.v);};});}
+
+/* =====================================================================
+   CHART: de estructura a notas con tiempo
+===================================================================== */
+function mergePattern(base,fill){const out=Object.assign({},base);if(!fill)return out;
+  // la segunda mitad del compás la ocupa el fill (caja/toms) y se corta el hi-hat
+  for(const k of ['sn','tom','ft']){if(!fill[k])continue;out[k]=(out[k]||'................').slice(0,8)+fill[k].slice(8);}
+  for(const k of ['hh','rd']){if(out[k])out[k]=out[k].slice(0,8)+'........';}
+  return out;}
+function buildChart(song,opts){
+  const bpm=opts.bpm,offset=opts.offset||0,diff=opts.diff;
+  const beat=60/bpm,step=beat/4;
+  let sections=song.sections&&song.sections.length?song.sections:[{n:'Tema',b:song.bars||64,g:song.groove||'rock8',f:'A',c:1}];
+  const notes=[],secs=[];let bar=0;
+  sections.forEach((sec,si)=>{
+    const g=GROOVES[sec.g]||GROOVES.rock8;
+    const start=offset+bar*16*step;
+    for(let i=0;i<sec.b;i++){
+      let pat=Object.assign({},g);
+      const isLast=i===sec.b-1&&si<sections.length-1;
+      const isFillBar=isLast&&sec.f&&diff!=='easy'&&sec.g!=='rest';
+      if(isFillBar)pat=mergePattern(pat,diff==='pro'?FILLS[sec.f]:FILLS.B);
+      const crash=sec.c&&i===0&&diff!=='easy'&&sec.g!=='rest';
+      for(let st=0;st<16;st++){
+        const t=offset+(bar*16+st)*step;
+        for(const k of Object.keys(pat)){
+          if(k==='label')continue;const row=pat[k];if(!row||row[st]!=='x')continue;
+          if(diff==='easy'&&!(k==='sn'||k==='ki'))continue;
+          if(crash&&st===0&&(k==='hh'||k==='rd'))continue;
+          notes.push({t,lane:k==='rd'?'hh':k,ring:k==='rd',bar:bar,step:st,hit:null});
+        }
+        if(crash&&st===0){notes.push({t,lane:'cr',bar,step:0,hit:null});if(!(pat.ki&&pat.ki[0]==='x'))notes.push({t,lane:'ki',bar,step:0,hit:null});}
+      }
+      bar++;
+    }
+    secs.push({n:sec.n,g:g.label,start,end:offset+bar*16*step});
+  });
+  notes.sort((a,b)=>a.t-b.t||LANE_INDEX[a.lane]-LANE_INDEX[b.lane]);
+  return{notes,secs,beat,bars:bar,end:offset+bar*16*step};
+}
+
+/* =====================================================================
+   YOUTUBE
+===================================================================== */
+let player=null,ytReady=false,ytPending=null,videoOk=true;
+const IS_FILE=location.protocol==='file:';
+if(IS_FILE)$('#fileBanner').hidden=false;
+window.onYouTubeIframeAPIReady=function(){ytReady=true;if(ytPending){loadVideo(ytPending);ytPending=null;}};
+(function(){const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';s.onerror=()=>{$('#vmsgTitle').textContent='Sin conexión a YouTube.';$('#vmsgText').textContent='Revisá tu conexión a internet.';$('#vmsg').hidden=false;};document.head.appendChild(s);})();
+function ytErrorText(c){
+  if(IS_FILE)return['El archivo está abierto desde el disco.','YouTube no reproduce así (error '+c+'). Abrí el juego con "Iniciar DrumHero.bat" o "iniciar-drumhero.command".'];
+  if(c===101||c===150)return['Este video no permite reproducirse embebido.','El canal lo bloquea. Elegí otro video del mismo tema (audio oficial, lyric video o en vivo suelen andar).'];
+  if(c===100)return['El video no existe o es privado.','Elegí otro video.'];
+  if(c===153)return['YouTube rechazó el origen de la página (error 153).','Abrí el juego desde el lanzador (http://127.0.0.1:8765), no desde el archivo.'];
+  return['No se pudo cargar el video (error '+c+').','Elegí otro video o probá con Spotify.'];
+}
+function loadVideo(id){
+  if(!ytReady){ytPending=id;return;}
+  videoOk=true;$('#vmsg').hidden=true;
+  if(player){player.cueVideoById(id);return;}
+  player=new YT.Player('yt',{videoId:id,playerVars:{rel:0,modestbranding:1,playsinline:1,controls:1,fs:0,origin:IS_FILE?undefined:location.origin},events:{
+    onReady:()=>{applyRate();},
+    onStateChange:(e)=>{onYtState(e.data);},
+    onError:(e)=>{videoOk=false;const [t,x]=ytErrorText(e&&e.data);$('#vmsgTitle').textContent=t;$('#vmsgText').textContent=x;$('#vmsg').hidden=false;}
+  }});
+}
+
+/* Abstracción de reproductor: YouTube o Spotify */
+const media={
+  src:'yt',
+  time(){return this.src==='sp'?spTime():(player&&player.getCurrentTime?player.getCurrentTime():0);},
+  playing(){return this.src==='sp'?(spState&&!spState.paused):ytPlaying();},
+  ready(){return this.src==='sp'?(spDeviceId&&spTrackId()):!!(player&&player.playVideo);},
+  play(){if(this.src==='sp')spPlay();else player.playVideo();},
+  pause(){if(this.src==='sp'){if(spPlayer)spPlayer.pause();}else if(player&&player.pauseVideo)player.pauseVideo();},
+  async cue(t){if(this.src==='sp')await spCue(t);else{player.seekTo(t,true);player.pauseVideo();}},
+  rate(){return this.src==='sp'?1:parseFloat(S.prefs.rate);}
+};
+function setSongVideo(song,id){const ss=songState(song.id);if(id===videoIdFor(song))return;ss.yt=(id===song.yt)?null:id;ss.offset=null;save();if(G.song&&G.song.id===song.id){loadVideo(id);updateVidInfo();updateCal();}toast('Video cambiado. Volvé a marcar el 1.');}
+function updateVidInfo(){if(!G.song)return;const id=videoIdFor(G.song);if(!id){$('#vidInfo').textContent='Sin video elegido';return;}const custom=id!==G.song.yt;$('#vidInfo').innerHTML=`<a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener" style="color:var(--text)">youtube.com/watch?v=${id}</a>${custom?' <span class="tag">elegido por vos</span>':''}`;}
+function ytPlaying(){return player&&player.getPlayerState&&player.getPlayerState()===1;}
+function applyRate(){if(player&&player.setPlaybackRate)try{player.setPlaybackRate(parseFloat(S.prefs.rate));}catch(e){}}
+
+/* Reloj: interpola el tiempo del video entre lecturas */
+const clock={base:0,stamp:0,rate:1,playing:false,lastPoll:0};
+function clockNow(){return clock.playing?clock.base+(performance.now()-clock.stamp)/1000*clock.rate:clock.base;}
+function clockPoll(){
+  if(media.src==='yt'&&(!player||!player.getCurrentTime))return;
+  if(media.src==='sp'&&!spState)return;
+  const n=performance.now();if(n-clock.lastPoll<120)return;clock.lastPoll=n;
+  const t=media.time();const est=clockNow();
+  if(!clock.playing||Math.abs(t-est)>0.09){clock.base=t;clock.stamp=n;}
+  else{clock.base=est+(t-est)*0.15;clock.stamp=n;}
+}
+/* st: 1 = reproduciendo, 2 = pausa, 0 = terminó */
+function onMediaState(st){
+  if(st===1){clock.playing=true;clock.rate=media.rate();clock.base=media.time();clock.stamp=performance.now();if(G.phase==='setup')$('#btnPlayPause').textContent='⏸ Pausa';}
+  else{clock.base=clockNow();clock.playing=false;clock.stamp=performance.now();if(G.phase==='setup')$('#btnPlayPause').textContent='▶ Play';}
+  if(st===0&&G.phase==='playing')finishSong();
+}
+function onYtState(st){if(media.src!=='yt')return;if(st===1)applyRate();onMediaState(st===1?1:st===0?0:2);}
+
+/* =====================================================================
+   SPOTIFY: login (PKCE), Web Playback SDK y búsqueda
+===================================================================== */
+const SP_SCOPES='streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state';
+const SP_TKEY='drumhero.sp';
+let spPlayer=null,spDeviceId=null,spSdkLoaded=false,spState=null,spStamp=0,spLoaded=null,spUser=null,spConnecting=false,spEndedGuard=false;
+function spRedirectUri(){return location.origin+location.pathname.replace(/index\.html$/,'');}
+function spTokens(){try{return JSON.parse(localStorage.getItem(SP_TKEY)||'null');}catch(e){return null;}}
+function spSaveTokens(t){try{localStorage.setItem(SP_TKEY,JSON.stringify(t));}catch(e){}}
+function spTrackId(){if(!G.song)return null;const ss=S.songs[G.song.id];return (ss&&ss.sp)||G.song.sp||null;}
+function spTrackName(){if(!G.song)return null;const ss=S.songs[G.song.id];return (ss&&ss.sp&&ss.spName)||G.song.spName||null;}
+function spTrackArt(){if(!G.song)return null;const ss=S.songs[G.song.id];return (ss&&ss.sp&&ss.spArt)||G.song.spArt||null;}
+function spTime(){if(!spState)return 0;return (spState.paused?spState.position:spState.position+(Date.now()-spStamp))/1000;}
+function b64url(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+async function spLogin(){
+  const cid=S.prefs.spClient;if(!cid){openSpSetup();return;}
+  if(IS_FILE){toast('Spotify necesita abrir el juego desde el lanzador (http://127.0.0.1:8765).');return;}
+  const arr=new Uint8Array(48);crypto.getRandomValues(arr);const verifier=b64url(arr.buffer);
+  const challenge=b64url(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier)));
+  try{sessionStorage.setItem('drumhero.spv',verifier);sessionStorage.setItem('drumhero.spback',G.song?G.song.id:'');}catch(e){}
+  const p=new URLSearchParams({client_id:cid,response_type:'code',redirect_uri:spRedirectUri(),scope:SP_SCOPES,code_challenge_method:'S256',code_challenge:challenge});
+  location.href='https://accounts.spotify.com/authorize?'+p.toString();
+}
+async function spHandleRedirect(){
+  const q=new URLSearchParams(location.search);const code=q.get('code'),err=q.get('error');
+  if(!code&&!err)return null;
+  history.replaceState(null,'',location.pathname);
+  if(err){toast('Spotify no autorizó el acceso: '+err);return null;}
+  let verifier='';try{verifier=sessionStorage.getItem('drumhero.spv')||'';}catch(e){}
+  try{
+    const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:S.prefs.spClient,grant_type:'authorization_code',code,redirect_uri:spRedirectUri(),code_verifier:verifier})});
+    const j=await r.json();if(j.error){toast('Error de Spotify: '+(j.error_description||j.error));return null;}
+    spSaveTokens({access:j.access_token,refresh:j.refresh_token,exp:Date.now()+j.expires_in*1000});
+    toast('Spotify conectado');
+    let back='';try{back=sessionStorage.getItem('drumhero.spback')||'';}catch(e){}
+    return back;
+  }catch(e){toast('No se pudo completar el login de Spotify.');return null;}
+}
+async function spToken(){
+  const t=spTokens();if(!t)return null;
+  if(Date.now()<t.exp-60000)return t.access;
+  try{
+    const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:S.prefs.spClient,grant_type:'refresh_token',refresh_token:t.refresh})});
+    const j=await r.json();if(j.error){spSaveTokens(null);return null;}
+    spSaveTokens({access:j.access_token,refresh:j.refresh_token||t.refresh,exp:Date.now()+j.expires_in*1000});return j.access_token;
+  }catch(e){return null;}
+}
+async function spFetch(method,path,body){
+  const tok=await spToken();if(!tok)throw new Error('Sin sesión de Spotify');
+  const r=await fetch('https://api.spotify.com/v1'+path,{method,headers:Object.assign({Authorization:'Bearer '+tok},body?{'Content-Type':'application/json'}:{}),body:body?JSON.stringify(body):undefined});
+  if(r.status===204)return null;const txt=await r.text();let j=null;try{j=txt?JSON.parse(txt):null;}catch(e){}
+  if(!r.ok)throw new Error((j&&j.error&&j.error.message)||('HTTP '+r.status));return j;
+}
+function spLoadSdk(){return new Promise((res,rej)=>{if(window.Spotify){res();return;}if(spSdkLoaded){const iv=setInterval(()=>{if(window.Spotify){clearInterval(iv);res();}},100);return;}spSdkLoaded=true;window.onSpotifyWebPlaybackSDKReady=()=>res();const s=document.createElement('script');s.src='https://sdk.scdn.co/spotify-player.js';s.onerror=()=>rej(new Error('No se pudo cargar el reproductor de Spotify'));document.head.appendChild(s);});}
+async function spConnect(){
+  if(spPlayer||spConnecting)return;if(!spTokens())return;spConnecting=true;spSetStatus('Conectando…');
+  try{
+    await spLoadSdk();
+    spPlayer=new Spotify.Player({name:'Drum Hero',getOAuthToken:cb=>{spToken().then(t=>cb(t||''));},volume:0.9});
+    spPlayer.addListener('ready',({device_id})=>{spDeviceId=device_id;spSetStatus('Listo para reproducir');spUpdateUi();});
+    spPlayer.addListener('not_ready',()=>{spDeviceId=null;spSetStatus('Reproductor desconectado');spUpdateUi();});
+    spPlayer.addListener('initialization_error',({message})=>{spSetStatus('Error al iniciar: '+message);});
+    spPlayer.addListener('authentication_error',({message})=>{spSetStatus('Sesión inválida, volvé a iniciar sesión');spSaveTokens(null);spUpdateUi();});
+    spPlayer.addListener('account_error',({message})=>{spSetStatus('Se necesita Spotify Premium ('+message+')');});
+    spPlayer.addListener('playback_error',({message})=>{spSetStatus('Error de reproducción: '+message);});
+    spPlayer.addListener('player_state_changed',st=>{
+      if(!st)return;const wasPlaying=spState&&!spState.paused;
+      spState=st;spStamp=Date.now();
+      const tr=st.track_window&&st.track_window.current_track;if(tr)spShowTrack(tr);
+      const ended=st.paused&&st.position===0&&wasPlaying&&G.phase==='playing';
+      if(media.src==='sp')onMediaState(ended?0:(st.paused?2:1));
+    });
+    await spPlayer.connect();
+    spFetch('GET','/me').then(u=>{spUser=u;spUpdateUi();}).catch(()=>{});
+  }catch(e){spSetStatus(e.message||'Error');}
+  spConnecting=false;
+}
+setInterval(()=>{if(spPlayer&&media.src==='sp'&&!$('#play').hidden){spPlayer.getCurrentState().then(st=>{if(st){spState=st;spStamp=Date.now();}});}},400);
+function spSetStatus(t){$('#spStatus').textContent=t;}
+function spShowTrack(tr){$('#spName').textContent=tr.name;$('#spArtist').textContent=(tr.artists||[]).map(a=>a.name).join(', ');const im=tr.album&&tr.album.images&&tr.album.images[0];if(im)$('#spArt').src=im.url;}
+async function spPlay(){
+  const id=spTrackId();if(!id||!spDeviceId){toast('Elegí una canción y esperá a que el reproductor esté listo.');return;}
+  try{if(spLoaded===id&&spState){await spPlayer.resume();}else{await spFetch('PUT','/me/player/play?device_id='+spDeviceId,{uris:['spotify:track:'+id]});spLoaded=id;}}catch(e){spSetStatus('No se pudo reproducir: '+e.message);}
+}
+function spWaitPlaying(ms){return new Promise(res=>{const t0=Date.now();const iv=setInterval(()=>{if((spState&&!spState.paused&&spLoaded===spTrackId())||Date.now()-t0>ms){clearInterval(iv);res();}},50);});}
+async function spCue(t){
+  const id=spTrackId();if(!id||!spDeviceId)return;
+  try{
+    if(spLoaded===id&&spState){await spPlayer.seek(Math.round(t*1000));await spPlayer.pause();}
+    else{await spFetch('PUT','/me/player/play?device_id='+spDeviceId,{uris:['spotify:track:'+id],position_ms:Math.round(t*1000)});spLoaded=id;await spWaitPlaying(4000);await spPlayer.pause();}
+  }catch(e){spSetStatus('No se pudo preparar la canción: '+e.message);}
+}
+async function spSearch(q){
+  const j=await spFetch('GET','/search?type=track&limit=10&q='+encodeURIComponent(q));
+  return (j.tracks&&j.tracks.items||[]).map(t=>({id:t.id,name:t.name,artist:t.artists.map(a=>a.name).join(', '),art:(t.album.images[2]||t.album.images[0]||{}).url,dur:t.duration_ms}));
+}
+function spUpdateUi(){
+  const has=!!spTokens();const cid=!!S.prefs.spClient;
+  $('#spAcct').innerHTML=!cid?'<span class="muted">Sin configurar</span>':!has?'<span class="muted">Sin sesión</span>':`<span class="sp-pill">${spUser?esc(spUser.display_name||spUser.id):'Conectado'}${spUser&&spUser.product!=='premium'?' · sin Premium':''}</span>`;
+  $('#btnSpLogin').hidden=has;$('#btnSpLogin').textContent=cid?'Iniciar sesión en Spotify':'Configurar Spotify';
+  if(G.song){$('#spTrackInfo').textContent=spTrackName()||'Sin canción elegida';}
+  $('#segRate').style.opacity=media.src==='sp'?'.4':'1';$('#segRate').style.pointerEvents=media.src==='sp'?'none':'auto';
+}
+function setSource(v){
+  media.src=v;S.prefs.src=v;save();
+  $('#srcYt').hidden=v!=='yt';$('#srcSp').hidden=v!=='sp';
+  $('#yt').style.visibility=v==='sp'?'hidden':'visible';$('#spBox').hidden=v!=='sp';
+  if(v==='yt'){if(spPlayer)try{spPlayer.pause();}catch(e){}$('#vmsg').hidden=videoOk;}
+  else{$('#vmsg').hidden=true;if(player&&player.pauseVideo)try{player.pauseVideo();}catch(e){}spState=null;spConnect();const nm=spTrackName();if(nm){$('#spName').textContent=nm.split(' · ')[0];$('#spArtist').textContent=nm.split(' · ')[1]||'';const art=spTrackArt();if(art)$('#spArt').src=art;}else{$('#spName').textContent='Elegí una canción';$('#spArtist').textContent='';$('#spArt').removeAttribute('src');}spSetStatus(spTokens()?'':'Iniciá sesión para reproducir');}
+  clock.playing=false;clock.base=0;
+  spUpdateUi();
+}
+function openSpSetup(){$('#spModal').hidden=false;$('#spRedirect').textContent=spRedirectUri();$('#spClient').value=S.prefs.spClient||'';$('#spClientInfo').textContent=IS_FILE?'Atención: abrí el juego desde el lanzador; con el archivo abierto desde el disco Spotify no funciona.':'';$('#spLogout').hidden=!spTokens();}
+$('#btnSpSetup').onclick=openSpSetup;
+$('#btnCloseSp').onclick=()=>{$('#spModal').hidden=true;};
+$('#spCopyRedirect').onclick=()=>{const t=spRedirectUri();(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copiado'),()=>{const r=document.createRange();r.selectNodeContents($('#spRedirect'));const s=getSelection();s.removeAllRanges();s.addRange(r);});};
+$('#spSaveClient').onclick=()=>{const c=$('#spClient').value.trim();if(!/^[0-9a-f]{32}$/i.test(c)){toast('El Client ID tiene 32 caracteres hexadecimales.');return;}S.prefs.spClient=c;save();$('#spModal').hidden=true;spUpdateUi();spLogin();};
+$('#spLogout').onclick=()=>{spSaveTokens(null);if(spPlayer){try{spPlayer.disconnect();}catch(e){}spPlayer=null;spDeviceId=null;}spUser=null;$('#spModal').hidden=true;spUpdateUi();toast('Sesión de Spotify cerrada');};
+$('#btnSpLogin').onclick=()=>{if(!S.prefs.spClient)openSpSetup();else spLogin();};
+$('#btnSpPick').onclick=()=>{if(!spTokens()){toast('Primero iniciá sesión en Spotify.');return;}openPicker(G.song.title+' '+G.song.artist,tr=>{const ss=songState(G.song.id);ss.sp=tr.id;ss.spName=tr.name+' · '+tr.artist;ss.spArt=tr.art;ss.offset=null;spLoaded=null;save();updateCal();setSource('sp');toast('Canción elegida. Volvé a marcar el 1.');},'sp');};
+
+/* =====================================================================
+   AUDIO: micrófono (detección de golpes) y clics
+===================================================================== */
+let actx=null,micStream=null,micNode=null,micLevel=0,micAvg=0.002,lastOnset=0,micOn=false;
+function ensureCtx(){if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();}if(actx.state==='suspended')actx.resume();return actx;}
+async function startMic(){
+  if(micOn)return true;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Este navegador no permite usar el micrófono acá.');return false;}
+  try{
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const ctx=ensureCtx();const src=ctx.createMediaStreamSource(micStream);
+    micNode=ctx.createScriptProcessor(512,1,1);
+    micNode.onaudioprocess=(e)=>{
+      const d=e.inputBuffer.getChannelData(0);let s=0;for(let i=0;i<d.length;i++)s+=d[i]*d[i];const rms=Math.sqrt(s/d.length);
+      micLevel=rms;
+      const sens=S.prefs.sens/100; // 0.05..1
+      const thr=Math.max(0.012*(1.3-sens),micAvg*(6-4*sens));
+      const now=performance.now();
+      if(rms>thr&&now-lastOnset>70){lastOnset=now;onOnset();}
+      micAvg=micAvg*0.96+rms*0.04;
+    };
+    src.connect(micNode);const sink=ctx.createGain();sink.gain.value=0;micNode.connect(sink);sink.connect(ctx.destination);
+    micOn=true;return true;
+  }catch(e){toast('No se pudo acceder al micrófono: '+(e.message||e.name));return false;}
+}
+function stopMic(){if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}if(micNode){try{micNode.disconnect();}catch(e){}micNode=null;}micOn=false;micLevel=0;}
+function click(freq=1000,vol=0.25,dur=0.03){try{const ctx=ensureCtx();const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=freq;g.gain.setValueAtTime(vol,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur+0.01);}catch(e){}}
+
+/* =====================================================================
+   JUEGO
+===================================================================== */
+const G={phase:'idle',song:null,chart:null,input:'mic',diff:'normal',rate:1,score:0,combo:0,maxCombo:0,perfect:0,good:0,miss:0,nextIdx:0,secIdx:0,lastBeat:-1,startedAt:0,daily:false,padLit:{},fx:[]};
+const WIN_PERFECT=0.06,WIN_GOOD=0.14;
+function multiplier(){return Math.min(4,1+Math.floor(G.combo/10));}
+function currentOpts(){const ss=songState(G.song.id);return{bpm:ss.bpm||G.song.bpm,offset:ss.offset||0,diff:G.diff};}
+
+function openSong(id,daily){
+  G.song=songById(id);if(!G.song)return;G.daily=!!daily;
+  G.input=S.prefs.input;G.diff=S.prefs.diff;G.rate=parseFloat(S.prefs.rate);
+  if(daily){const d=dailyChallenge();G.diff=d.diff;G.rate=d.rate;S.prefs.rate=String(d.rate);}
+  $('#home').hidden=true;$('#play').hidden=false;
+  $('#pTitle').textContent=G.song.title+' · '+G.song.artist;
+  showSetup();
+  const vid=videoIdFor(G.song);
+  if(vid)loadVideo(vid);else{videoOk=false;$('#vmsgTitle').textContent='Este tema no tiene video de YouTube.';$('#vmsgText').textContent='Elegí un video con "Cambiar video" o usá Spotify.';if(media.src==='yt')$('#vmsg').hidden=false;}
+}
+function showSetup(){
+  G.phase='setup';$('#setup').hidden=false;$('#results').hidden=true;$('#controls').hidden=true;$('#pads').hidden=false;$('#cd').hidden=true;
+  seg($('#segInput'),G.input,v=>{G.input=v;S.prefs.input=v;save();updateInputHelp();});
+  seg($('#segDiff'),G.diff,v=>{G.diff=v;S.prefs.diff=v;save();updateDiffHelp();});
+  seg($('#segRate'),S.prefs.rate,v=>{S.prefs.rate=v;G.rate=parseFloat(v);save();applyRate();clock.rate=media.rate();});
+  const wantSp=S.prefs.src==='sp'||(!videoIdFor(G.song)&&G.song.sp);
+  seg($('#segSrc'),wantSp?'sp':'yt',v=>setSource(v));setSource(wantSp?'sp':'yt');
+  $('#latency').value=S.prefs.latency;$('#latVal').textContent=S.prefs.latency+' ms';
+  $('#sens').value=S.prefs.sens;$('#sensVal').textContent=S.prefs.sens;
+  updateInputHelp();updateDiffHelp();updateCal();updateVidInfo();
+  $('#pSub').textContent=(songState(G.song.id).bpm||G.song.bpm)+' BPM · '+G.song.sections.length+' secciones';
+}
+function updateInputHelp(){$('#inputHelp').textContent={mic:'El micrófono detecta el momento de cada golpe y lo compara con la nota. Usá auriculares para que no escuche el video.',keys:'Cada pista responde a una tecla (D F J K L, Espacio para bombo) o a los pads de abajo. Ideal para practicar coordinación sin batería.',guide:'Sin puntaje automático: las notas caen como partitura animada y al final calificás cómo te salió.'}[G.input];}
+function updateDiffHelp(){$('#diffHelp').textContent={easy:'Solo bombo y caja. Para agarrar la forma del tema.',normal:'Groove completo con hi-hat, crash al entrar a cada sección y fills simples.',pro:'Groove completo con los fills del tema.'}[G.diff];}
+function updateCal(){const ss=songState(G.song.id);$('#offVal').textContent=(ss.offset||0).toFixed(2);$('#bpmVal').textContent=ss.bpm||G.song.bpm;const c=$('#calState');if(ss.offset===null){c.textContent='Sin calibrar';c.className='tag warn';}else{c.textContent='Calibrado';c.className='tag ok';}}
+
+/* --- Calibración --- */
+let taps=[];
+$('#btnMark').onclick=()=>{if(!media.ready()){toast('Primero reproducí la canción.');return;}const t=media.time();const ss=songState(G.song.id);const was=ss.offset===null;ss.offset=Math.round(t*100)/100;if(was)S.calibrated++;save();updateCal();toast('Inicio marcado en '+ss.offset.toFixed(2)+' s');checkAchievements();};
+$('#btnTap').onclick=()=>{const n=performance.now();if(taps.length&&n-taps[taps.length-1]>2000)taps=[];taps.push(n);if(taps.length>=4){const iv=[];for(let i=1;i<taps.length;i++)iv.push(taps[i]-taps[i-1]);const avg=iv.slice(-8).reduce((a,b)=>a+b,0)/Math.min(iv.length,8);const bpm=Math.round(60000/avg/G.rate);const ss=songState(G.song.id);ss.bpm=Math.max(40,Math.min(240,bpm));save();updateCal();}else toast('Seguí tocando... ('+taps.length+'/4)');click(600,0.15);};
+$$('[data-off]').forEach(b=>b.onclick=()=>{const ss=songState(G.song.id);ss.offset=Math.round(((ss.offset||0)+parseFloat(b.dataset.off))*100)/100;save();updateCal();});
+$$('[data-bpm]').forEach(b=>b.onclick=()=>{const ss=songState(G.song.id);ss.bpm=(ss.bpm||G.song.bpm)+parseInt(b.dataset.bpm,10);save();updateCal();});
+$('#latency').oninput=e=>{S.prefs.latency=parseInt(e.target.value,10);$('#latVal').textContent=S.prefs.latency+' ms';save();};
+$('#sens').oninput=e=>{S.prefs.sens=parseInt(e.target.value,10);$('#sensVal').textContent=S.prefs.sens;save();};
+$('#btnPlayPause').onclick=()=>{ensureCtx();if(media.src==='sp'){if(!spTokens()){spLogin();return;}if(!spTrackId()){toast('Elegí una canción de Spotify.');return;}}if(!media.ready()){toast('El reproductor todavía no está listo.');return;}if(media.playing())media.pause();else media.play();};
+
+/* --- Inicio de partida --- */
+$('#btnStart').onclick=async()=>{
+  if(media.src==='yt'&&!videoOk){toast('El video no se puede reproducir. Probá otro link o Spotify.');return;}
+  if(media.src==='sp'&&!spTrackId()){toast('Elegí una canción de Spotify.');return;}
+  if(!media.ready()){toast(media.src==='sp'?'El reproductor de Spotify todavía no está listo (¿iniciaste sesión?).':'El video todavía está cargando.');return;}
+  ensureCtx();G.rate=media.rate();
+  if(G.input==='mic'){const ok=await startMic();if(!ok)return;}else stopMic();
+  const opts=currentOpts();
+  if(songState(G.song.id).offset===null)toast('Tip: sin calibrar, las notas arrancan en 0:00. Marcá el 1 para alinearlas.');
+  G.chart=buildChart(G.song,opts);committed=false;
+  G.score=0;G.combo=0;G.maxCombo=0;G.perfect=0;G.good=0;G.miss=0;G.nextIdx=0;G.secIdx=0;G.lastBeat=-1;G.fx=[];
+  G.chart.notes.forEach(n=>n.hit=null);
+  $('#setup').hidden=true;$('#results').hidden=true;$('#controls').hidden=false;$('#pads').hidden=G.input==='mic';
+  updateHud();
+  // arrancar 2 compases antes de la primera nota (o del inicio del chart)
+  const first=G.chart.notes.length?G.chart.notes[0].t:opts.offset;
+  const from=Math.max(0,Math.min(opts.offset,first)-G.chart.beat*8);
+  $('#btnStart').disabled=true;
+  await media.cue(from);
+  await countdown();
+  $('#btnStart').disabled=false;
+  media.play();G.phase='playing';G.startedAt=performance.now();
+};
+function countdown(){return new Promise(res=>{const el=$('#cd');el.hidden=false;let n=3;el.textContent=n;click(880,0.2);const iv=setInterval(()=>{n--;if(n<=0){clearInterval(iv);el.textContent='¡Dale!';click(1320,0.25);setTimeout(()=>{el.hidden=true;res();},400);}else{el.textContent=n;click(880,0.2);}},700);});}
+$('#btnPause').onclick=()=>{if(G.phase==='playing'){media.pause();G.phase='paused';$('#btnPause').textContent='▶ Seguir';}else if(G.phase==='paused'){media.play();G.phase='playing';$('#btnPause').textContent='⏸ Pausa';}};
+$('#btnQuit').onclick=()=>{if(G.phase==='playing'||G.phase==='paused')finishSong(true);};
+$('#btnBack').onclick=()=>{leavePlay();};
+$('#btnFs').onclick=()=>{const el=document.documentElement;if(document.fullscreenElement){document.exitFullscreen&&document.exitFullscreen();}else if(el.requestFullscreen){el.requestFullscreen().catch(()=>{});}};
+function leavePlay(){try{media.pause();}catch(e){}stopMic();G.phase='idle';$('#play').hidden=true;$('#home').hidden=false;renderHome();}
+
+/* --- Entrada --- */
+function judgeAt(tMedia,laneFilter){
+  // busca la nota (o grupo simultáneo) más cercana no golpeada dentro de la ventana
+  const notes=G.chart.notes;let best=null,bestD=WIN_GOOD;
+  for(let i=Math.max(0,G.nextIdx-8);i<notes.length;i++){const n=notes[i];if(n.t-tMedia>WIN_GOOD)break;if(n.hit)continue;if(laneFilter&&n.lane!==laneFilter)continue;const d=Math.abs(n.t-tMedia);if(d<bestD){bestD=d;best=n;}}
+  if(!best)return false;
+  const q=bestD<=WIN_PERFECT?'perfect':'good';
+  const group=laneFilter?[best]:notes.filter(n=>!n.hit&&Math.abs(n.t-best.t)<0.012);
+  group.forEach(n=>{n.hit=q;n.hitAt=performance.now();});
+  G.combo+=1;G.maxCombo=Math.max(G.maxCombo,G.combo);
+  const pts=(q==='perfect'?100:50)*multiplier()*group.length;G.score+=pts;if(q==='perfect')G.perfect+=group.length;else G.good+=group.length;
+  showJudge(q==='perfect'?'¡PERFECTO!':'BIEN',q==='perfect'?'#3ECF8E':'#F5C842');
+  group.forEach(n=>litPad(n.lane));updateHud();return true;
+}
+function onOnset(){if(G.phase!=='playing'||G.input!=='mic')return;const t=clockNow()-S.prefs.latency/1000;judgeAt(t,null);}
+function laneInput(lane){litPad(lane);if(G.phase!=='playing')return;if(G.input==='keys'){const t=clockNow();if(!judgeAt(t,lane)){/* golpe sin nota: no rompe combo, solo no suma */}}}
+window.addEventListener('keydown',e=>{if(e.repeat)return;if($('#play').hidden)return;if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'))return;const k=e.key.toLowerCase();if(k===' '){e.preventDefault();laneInput('ki');return;}const l=LANES.find(x=>x.key===k);if(l)laneInput(l.id);});
+function buildPads(){const p=$('#pads');p.innerHTML='';const all=LANES.concat([KICK]);all.forEach(l=>{const d=document.createElement('div');d.className='pad'+(l.id==='ki'?' kick':'');d.style.setProperty('--c',l.color);d.innerHTML=`<b>${l.id==='ki'?'␣':l.key.toUpperCase()}</b>${l.name}`;d.dataset.lane=l.id;const h=(e)=>{e.preventDefault();laneInput(l.id);};d.addEventListener('pointerdown',h);p.appendChild(d);});}
+function litPad(lane){G.padLit[lane]=performance.now();}
+function showJudge(txt,color){const j=$('#judge');j.textContent=txt;j.style.color=color;j.classList.add('show');clearTimeout(j._t);j._t=setTimeout(()=>j.classList.remove('show'),260);}
+function updateHud(){$('#hScore').textContent=G.score.toLocaleString('es-AR');$('#hCombo').textContent=G.combo>=3?G.combo+' combo':'';$('#hMult').textContent=G.input==='guide'?'modo guía':'x'+multiplier();}
+
+/* --- Bucle principal --- */
+const cv=$('#hw'),cx=cv.getContext('2d');let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cx.setTransform(DPR,0,0,DPR,0,0);}
+window.addEventListener('resize',resize);
+const LOOK=1.9; // segundos visibles por encima de la línea
+function loop(){
+  requestAnimationFrame(loop);
+  if($('#play').hidden)return;
+  clockPoll();
+  if(W===0||Math.abs(cv.getBoundingClientRect().width-W)>1)resize();
+  const now=clockNow();
+  if(G.phase==='playing'){
+    const notes=G.chart.notes;
+    // misses
+    while(G.nextIdx<notes.length&&notes[G.nextIdx].t<now-WIN_GOOD){const n=notes[G.nextIdx];if(!n.hit){n.hit=G.input==='guide'?'auto':'miss';if(G.input!=='guide'){G.miss++;if(G.combo>0){G.combo=0;showJudge('...','#8C96B0');}updateHud();}else litPad(n.lane);}G.nextIdx++;}
+    // avanzar sobre notas ya golpeadas
+    while(G.nextIdx<notes.length&&notes[G.nextIdx].hit)G.nextIdx++;
+    // sección
+    const secs=G.chart.secs;let si=secs.findIndex(s=>now>=s.start&&now<s.end);if(si<0&&now>=G.chart.end)si=secs.length-1;
+    $('#hSect').textContent=si>=0?secs[si].n+' · '+secs[si].g:'';
+    // metrónomo
+    if($('#metro').checked){const b=Math.floor((now-(currentOpts().offset))/G.chart.beat);if(b!==G.lastBeat){G.lastBeat=b;if(now>=currentOpts().offset)click(b%4===0?1200:800,0.12);}}
+    if(now>G.chart.end+1.5)finishSong();
+  }
+  draw(now);
+  // medidor de mic
+  const lv=$('#micLvl');if(lv){lv.style.height=Math.min(100,micLevel*600)+'%';}
+  if(media.src==='sp'&&spState&&spState.duration){$('#spProg').style.width=Math.min(100,spTime()/(spState.duration/1000)*100)+'%';}
+}
+function draw(now){
+  cx.clearRect(0,0,W,H);
+  const pad=8,laneW=(W-pad*2)/LANES.length,hitY=H-56,top=0;
+  const pxPerSec=(hitY-top)/LOOK;
+  // pistas
+  for(let i=0;i<LANES.length;i++){const x=pad+i*laneW;cx.fillStyle=i%2?'rgba(255,255,255,0.025)':'rgba(255,255,255,0.045)';cx.fillRect(x,0,laneW,H);}
+  // líneas de compás y tiempo
+  if(G.chart){const beat=G.chart.beat;const off=currentOpts().offset;const first=Math.floor((now-off)/beat)-1;for(let b=first;b<first+Math.ceil(LOOK/beat)+3;b++){const t=off+b*beat;const y=hitY-(t-now)*pxPerSec;if(y<-2||y>H)continue;const bar=((b%4)+4)%4===0;cx.strokeStyle=bar?'rgba(255,255,255,0.22)':'rgba(255,255,255,0.07)';cx.lineWidth=bar?2:1;cx.beginPath();cx.moveTo(pad,y);cx.lineTo(W-pad,y);cx.stroke();}}
+  // línea de golpe
+  cx.strokeStyle='rgba(255,255,255,0.7)';cx.lineWidth=3;cx.beginPath();cx.moveTo(pad,hitY);cx.lineTo(W-pad,hitY);cx.stroke();
+  // receptores
+  const pn=performance.now();
+  for(let i=0;i<LANES.length;i++){const l=LANES[i];const x=pad+i*laneW+laneW/2;const lit=G.padLit[l.id]&&pn-G.padLit[l.id]<120;cx.beginPath();cx.arc(x,hitY,Math.min(laneW*0.32,20),0,Math.PI*2);cx.strokeStyle=l.color;cx.lineWidth=2.5;cx.fillStyle=lit?l.color:'rgba(11,15,26,0.9)';cx.fill();cx.stroke();
+    cx.fillStyle='rgba(255,255,255,0.55)';cx.font='500 10px Rubik, system-ui';cx.textAlign='center';cx.fillText(l.name.toUpperCase(),x,H-18);}
+  const kl=G.padLit.ki&&pn-G.padLit.ki<120;cx.fillStyle=kl?KICK.color:'rgba(255,138,61,0.25)';cx.fillRect(pad,hitY+6,W-pad*2,5);
+  if(!G.chart)return;
+  // notas
+  const notes=G.chart.notes;const r=Math.min(laneW*0.3,18);
+  for(let i=Math.max(0,G.nextIdx-30);i<notes.length;i++){
+    const n=notes[i];const dt=n.t-now;if(dt>LOOK+0.2)break;
+    let y=hitY-dt*pxPerSec;
+    if(n.hit&&n.hit!=='miss'){const age=(pn-(n.hitAt||pn))/1000;if(age>0.25)continue;const a=1-age/0.25;
+      if(n.lane==='ki'){cx.fillStyle=`rgba(255,138,61,${a*0.6})`;cx.fillRect(pad,hitY-4-age*40,W-pad*2,8);}
+      else{const li=LANE_INDEX[n.lane];const x=pad+li*laneW+laneW/2;cx.beginPath();cx.arc(x,hitY,r+age*60,0,Math.PI*2);cx.strokeStyle=LANES[li].color;cx.globalAlpha=a;cx.lineWidth=3;cx.stroke();cx.globalAlpha=1;}
+      continue;}
+    if(y>H+20)continue;
+    const missed=n.hit==='miss';
+    if(n.lane==='ki'){cx.fillStyle=missed?'rgba(255,138,61,0.25)':KICK.color;cx.fillRect(pad+2,y-4,W-pad*2-4,8);continue;}
+    const li=LANE_INDEX[n.lane];const l=LANES[li];const x=pad+li*laneW+laneW/2;
+    cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);
+    if(n.ring){cx.strokeStyle=l.color;cx.lineWidth=4;cx.fillStyle='rgba(11,15,26,0.8)';cx.fill();cx.stroke();}
+    else{cx.fillStyle=missed?'rgba(140,150,176,0.35)':l.color;cx.fill();if(!missed){cx.fillStyle='rgba(255,255,255,0.35)';cx.beginPath();cx.arc(x-r*0.3,y-r*0.3,r*0.35,0,Math.PI*2);cx.fill();}}
+  }
+}
+
+/* --- Fin y resultados --- */
+function finishSong(aborted){
+  if(G.phase!=='playing'&&G.phase!=='paused')return;
+  G.phase='results';try{media.pause();}catch(e){}
+  stopMic();$('#controls').hidden=true;$('#pads').hidden=true;$('#btnPause').textContent='⏸ Pausa';
+  const notes=G.chart.notes;const total=notes.length;
+  const played=notes.filter(n=>n.hit).length;
+  // notas no llegadas cuentan como no tocadas si se abortó
+  const guide=G.input==='guide';
+  let acc=total?(G.perfect+G.good*0.6)/total:0;
+  const coverage=total?played/total:1;
+  if(aborted&&coverage<0.5){acc*=coverage;}
+  let stars=guide?0:(acc>=0.92?3:acc>=0.75?2:acc>=0.5?1:0);
+  const res={acc,stars,aborted,coverage};
+  $('#rTitle').textContent=aborted?'Terminado antes de tiempo':'Resultado';
+  $('#rScore').textContent=G.score.toLocaleString('es-AR');$('#rAcc').textContent=Math.round(acc*100)+'%';$('#rCombo').textContent=G.maxCombo;
+  $('#rBreak').innerHTML=guide?`<span class="tag">${total} notas mostradas</span>`:`<span class="tag" style="color:var(--good)">${G.perfect} perfectos</span><span class="tag" style="color:var(--warn)">${G.good} bien</span><span class="tag" style="color:var(--bad)">${G.miss} fallados</span>`;
+  $('#selfRateBox').hidden=!guide;$('#rAch').innerHTML='';
+  $$('#selfRate button').forEach(b=>{b.classList.remove('on');b.onclick=()=>{$$('#selfRate button').forEach(x=>x.classList.remove('on'));b.classList.add('on');res.stars=parseInt(b.dataset.s,10);commitResult(res,true);};});
+  $('#results').hidden=false;
+  if(!guide)commitResult(res,false);else{$('#rStars').innerHTML=starsHtml(0);$('#rVerdict').textContent='Calificá tu ejecución';$('#rSub').textContent='';$('#rXp').textContent='+0';}
+}
+let committed=false;
+function commitResult(res,fromSelf){
+  // un solo commit por partida, salvo modo guía que se recalifica
+  if(committed&&!fromSelf)return;
+  const guide=G.input==='guide';
+  const rateMult=G.rate>=1?1:G.rate>=0.75?0.7:0.5;
+  const diffMult={easy:0.8,normal:1,pro:1.3}[G.diff];
+  let xp=Math.round((G.score/25+res.stars*60)*rateMult*diffMult);
+  if(guide)xp=Math.round((res.stars*50+G.chart.notes.length/10)*rateMult*diffMult*0.6);
+  if(res.aborted)xp=Math.round(xp*0.5);
+  if(G.daily&&res.stars>=dailyChallenge().stars&&S.dailyDoneDay!==today()){xp+=150;S.dailyDone++;S.dailyDoneDay=today();toast('¡Desafío del día completado! +150 XP');}
+  if(!committed||fromSelf){
+    if(committed&&fromSelf){S.xp-=G._lastXp||0;} // recalificación en modo guía: reemplaza
+    S.xp+=xp;G._lastXp=xp;
+    if(!committed){S.plays++;touchStreak();if(G.rate<1)S.slowPlays++;}
+    const ss=songState(G.song.id);ss.plays=committed?ss.plays:ss.plays+1;ss.best=Math.max(ss.best,G.score);const prevStars=ss.stars;ss.stars=Math.max(ss.stars,res.stars);
+    S.bestCombo=Math.max(S.bestCombo,G.maxCombo);if(res.stars===3)S.threeStars++;if(G.rate>=1&&res.stars>=2)S.fullSpeed2++;if(G.diff==='pro'&&res.stars>=2)S.pro2++;
+    committed=true;save();
+  }
+  $('#rStars').innerHTML=starsHtml(res.stars);
+  $('#rVerdict').textContent=res.stars===3?'¡Impecable!':res.stars===2?'¡Muy bien!':res.stars===1?'Vas bien, seguí':'A seguir practicando';
+  $('#rSub').textContent=(G.rate<1?'A '+Math.round(G.rate*100)+'% de velocidad · ':'')+{easy:'Fácil',normal:'Normal',pro:'Pro'}[G.diff]+(res.stars<3&&!guide?' · Para 3 estrellas necesitás 92% de precisión':'');
+  $('#rXp').textContent='+'+xp;
+  const newA=checkAchievements();
+  $('#rAch').innerHTML=newA.map(a=>`<div class="ach"><div class="ic">${a.ic}</div><div><b>Logro: ${a.name}</b><div class="muted small">${a.desc}</div></div></div>`).join('');
+}
+$('#btnRetry').onclick=()=>{committed=false;showSetup();};
+$('#btnHome').onclick=()=>{committed=false;leavePlay();};
+function checkAchievements(){const got=[];ACHIEVEMENTS.forEach(a=>{if(!S.ach.includes(a.id)&&a.test(S)){S.ach.push(a.id);got.push(a);}});if(got.length)save();return got;}
+
+/* =====================================================================
+   DESAFÍO DEL DÍA
+===================================================================== */
+function dailyChallenge(){const t=today();let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))>>>0;const songs=allSongs();const song=songs[h%songs.length];const variants=[{diff:'easy',rate:1,stars:2,txt:'Fácil al 100%, 2 estrellas'},{diff:'normal',rate:0.75,stars:2,txt:'Normal al 75%, 2 estrellas'},{diff:'normal',rate:1,stars:1,txt:'Normal al 100%, 1 estrella'},{diff:'pro',rate:0.75,stars:1,txt:'Pro al 75%, 1 estrella'}];const v=variants[(h>>>8)%variants.length];return Object.assign({song},v);}
+
+/* =====================================================================
+   INICIO (render)
+===================================================================== */
+function renderHome(){
+  const li=levelInfo(S.xp);$('#lvlNum').textContent=li.n;$('#lvlTitle').textContent=li.title;$('#xpText').textContent=S.xp+' XP'+(li.next?' · faltan '+(li.next-S.xp)+' para nivel '+(li.n+1):' · nivel máximo');
+  $('#ringArc').setAttribute('stroke-dashoffset',String(176-176*li.frac));
+  $('#stSongs').textContent=S.plays;$('#stStreak').textContent=S.streak;$('#stStars').textContent=Object.values(S.songs).reduce((a,s)=>a+(s.stars||0),0);
+  const d=dailyChallenge();$('#dailyTitle').textContent=d.song.title+' · '+d.song.artist;$('#dailyDesc').textContent=d.txt+' · +150 XP';const done=S.dailyDoneDay===today();$('#dailyState').textContent=done?'Completado':'Pendiente';$('#dailyState').className='tag '+(done?'ok':'warn');$('#btnDaily').onclick=()=>openSong(d.song.id,true);
+  const list=$('#songList');list.innerHTML='';
+  allSongs().forEach(s=>{const ss=songState(s.id);const b=document.createElement('button');b.className='song';const vid=videoIdFor(s);const ssp=S.songs[s.id];const art=vid?`https://i.ytimg.com/vi/${vid}/mqdefault.jpg`:((ssp&&ssp.spArt)||s.spArt||'');b.innerHTML=`<img src="${esc(art)}" alt="" loading="lazy"><div style="min-width:0"><div class="t">${esc(s.title)}</div><div class="muted small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.artist)}</div><div class="meta"><span class="stars">${starsHtml(ss.stars)}</span><span class="tag">${ss.bpm||s.bpm} BPM</span>${ss.offset===null?'<span class="tag warn">sin calibrar</span>':''}${ss.best?`<span class="tag">${ss.best.toLocaleString('es-AR')} pts</span>`:''}</div></div><div class="muted" style="font-size:20px">›</div>`;b.onclick=()=>openSong(s.id,false);
+    if(s.custom){b.oncontextmenu=(e)=>{e.preventDefault();openAdd(s);};}
+    list.appendChild(b);
+    if(s.custom){const e=document.createElement('div');e.className='row';e.style.justifyContent='flex-end';e.style.marginTop='-4px';e.innerHTML='<button class="btn sm ghost muted">Editar</button>';e.firstChild.onclick=()=>openAdd(s);list.appendChild(e);}
+  });
+  $('#achList').innerHTML=ACHIEVEMENTS.map(a=>`<div class="ach ${S.ach.includes(a.id)?'':'locked'}"><div class="ic">${a.ic}</div><div><b>${a.name}</b><div class="muted small">${a.desc}</div></div></div>`).join('');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* =====================================================================
+   AGREGAR / EDITAR TEMA
+===================================================================== */
+let editing=null,addTaps=[];
+function grooveOptions(){return Object.keys(GROOVES).map(k=>`<option value="${k}">${GROOVES[k].label}</option>`).join('');}
+function secRow(sec){const d=document.createElement('div');d.className='secrow';d.innerHTML=`<input placeholder="Nombre" value="${esc(sec?sec.n:'')}"><input type="number" min="1" max="200" value="${sec?sec.b:8}" title="Compases"><select>${grooveOptions()}</select><button class="btn sm ghost" title="Quitar">✕</button>`;d.querySelector('select').value=sec?sec.g:'rock8';d.querySelector('button').onclick=()=>d.remove();return d;}
+function openAdd(song){
+  editing=song||null;$('#addModal').hidden=false;$('#addTitle').textContent=song?'Editar tema':'Agregar tema';
+  $('#aName').value=song?song.title+' - '+song.artist:'';$('#aUrl').value=song&&song.yt?'https://www.youtube.com/watch?v='+song.yt:'';$('#aBpm').value=song?song.bpm:120;
+  $('#aGroove').innerHTML=grooveOptions();$('#aGroove').value=song?(song.groove||'rock8'):'rock8';$('#aBars').value=song?(song.bars||64):64;
+  const sc=$('#aSections');sc.innerHTML='';if(song&&song.sections&&song.sections.length&&!song.autoSections)song.sections.forEach(s=>sc.appendChild(secRow(s)));
+  $('#aDelete').hidden=!song;$('#aUrlInfo').textContent='';updateSearchLink();
+  aSp=song&&song.sp?{id:song.sp,name:song.spName,art:song.spArt}:null;$('#aSpInfo').textContent=aSp?aSp.name:'Ninguna';
+}
+let aSp=null;
+$('#aSpPick').onclick=()=>{if(!spTokens()){toast('Primero conectá Spotify desde cualquier tema (Fuente del audio → Spotify → Configurar).');return;}openPicker($('#aName').value.trim(),tr=>{aSp={id:tr.id,name:tr.name+' · '+tr.artist,art:tr.art};$('#aSpInfo').textContent=aSp.name;if(!$('#aName').value.trim())$('#aName').value=tr.name+' - '+tr.artist;},'sp');};
+function updateSearchLink(){const q=$('#aName').value.trim();$('#aSearch').href='https://www.youtube.com/results?search_query='+encodeURIComponent(q+' official video');}
+$('#aName').oninput=updateSearchLink;
+$('#aUrl').oninput=()=>{const id=parseYt($('#aUrl').value);$('#aUrlInfo').textContent=id?'Video detectado: '+id:'Pegá un link de YouTube válido.';};
+$('#aTap').onclick=()=>{const n=performance.now();if(addTaps.length&&n-addTaps[addTaps.length-1]>2000)addTaps=[];addTaps.push(n);if(addTaps.length>=4){const iv=[];for(let i=1;i<addTaps.length;i++)iv.push(addTaps[i]-addTaps[i-1]);const avg=iv.slice(-8).reduce((a,b)=>a+b,0)/Math.min(iv.length,8);$('#aBpm').value=Math.round(60000/avg);}click(600,0.15);};
+$('#aAddSec').onclick=()=>$('#aSections').appendChild(secRow(null));
+$('#btnAdd').onclick=()=>openAdd(null);
+$('#btnCloseAdd').onclick=()=>{$('#addModal').hidden=true;};
+$('#aSave').onclick=()=>{
+  const id=parseYt($('#aUrl').value);if(!id&&!aSp){toast('Pegá un link de YouTube o elegí una canción de Spotify.');return;}
+  if($('#aUrl').value.trim()&&!id){toast('El link de YouTube no es válido.');return;}
+  const name=$('#aName').value.trim()||'Tema sin nombre';const parts=name.split(/\s+-\s+/);
+  const bpm=Math.max(40,Math.min(240,parseInt($('#aBpm').value,10)||120));
+  const rows=$$('.secrow',$('#aSections'));
+  const sections=rows.map(r=>{const [n,b]=$$('input',r);return{n:n.value.trim()||'Sección',b:Math.max(1,parseInt(b.value,10)||8),g:r.querySelector('select').value,f:'A',c:1};}).filter(s=>s.b>0);
+  const song={id:editing?editing.id:'c_'+Date.now().toString(36),custom:true,title:parts[0],artist:parts[1]||'',yt:id||null,sp:aSp?aSp.id:null,spName:aSp?aSp.name:null,spArt:aSp?aSp.art:null,bpm,groove:$('#aGroove').value,bars:Math.max(4,parseInt($('#aBars').value,10)||64)};
+  if(sections.length){song.sections=sections;}else{const g=$('#aGroove').value;const bars=song.bars;const secs=[];let left=bars,i=1;while(left>0){const b=Math.min(8,left);secs.push({n:'Parte '+i,b,g,f:'A',c:1});left-=b;i++;}song.sections=secs;song.autoSections=true;}
+  if(editing){const i=S.custom.findIndex(s=>s.id===editing.id);if(i>=0)S.custom[i]=song;else S.custom.push(song);}else S.custom.push(song);
+  const ss=songState(song.id);if(editing&&editing.bpm!==bpm)ss.bpm=null;if(editing&&editing.yt!==id){ss.yt=null;ss.offset=null;}
+  save();checkAchievements();$('#addModal').hidden=true;renderHome();toast(editing?'Tema actualizado':'Tema agregado a la biblioteca');
+};
+$('#aDelete').onclick=()=>{if(!editing)return;S.custom=S.custom.filter(s=>s.id!==editing.id);delete S.songs[editing.id];save();$('#addModal').hidden=true;renderHome();toast('Tema eliminado');};
+$('#aPick').onclick=()=>openPicker($('#aName').value.trim(),id=>{$('#aUrl').value='https://www.youtube.com/watch?v='+id;$('#aUrlInfo').textContent='Video elegido: '+id;});
+
+/* =====================================================================
+   SELECTOR DE VIDEO (búsqueda con YouTube Data API opcional)
+===================================================================== */
+let pickCb=null,pickMode='yt';
+function openPicker(query,cb,mode){pickCb=cb;pickMode=mode||'yt';const sp=pickMode==='sp';$('#vidModal').hidden=false;$('#vTitle').textContent=sp?'Elegir canción en Spotify':'Elegir video';$('#vQueryLabel').textContent=sp?'Buscar en Spotify':'Buscar en YouTube';$('#vUrlBox').hidden=sp;$('#vKeyBox').hidden=sp;$('#vQuery').value=query||'';$('#vUrl').value='';$('#vUrlInfo').textContent='';$('#vResults').innerHTML='';$('#vKey').value=S.prefs.ytKey||'';$('#vKeyBox').open=!S.prefs.ytKey;if(query&&(sp||S.prefs.ytKey))$('#vSearch').click();}
+async function searchSpotifyUi(q){const box=$('#vResults');box.innerHTML='<p class="muted small">Buscando en Spotify…</p>';try{const items=await spSearch(q);if(!items.length){box.innerHTML='<p class="muted small">Sin resultados.</p>';return;}box.innerHTML='';items.forEach(t=>{const b=document.createElement('button');b.className='song';b.innerHTML=`<img src="${esc(t.art||'')}" alt=""><div style="min-width:0"><div class="t">${esc(t.name)}</div><div class="muted small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.artist)} · ${Math.floor(t.dur/60000)}:${String(Math.floor(t.dur/1000)%60).padStart(2,'0')}</div></div><div class="muted" style="font-size:20px">›</div>`;b.onclick=()=>pickVideo(t);box.appendChild(b);});}catch(e){box.innerHTML='<p class="small" style="color:var(--bad)">No se pudo buscar: '+esc(e.message)+'</p>';}}
+function closePicker(){$('#vidModal').hidden=true;pickCb=null;}
+function pickVideo(id){if(pickCb)pickCb(id);closePicker();}
+$('#btnCloseVid').onclick=closePicker;
+$('#vKeySave').onclick=()=>{S.prefs.ytKey=$('#vKey').value.trim();save();toast(S.prefs.ytKey?'Clave guardada':'Clave borrada');};
+$('#vUrl').oninput=()=>{const id=parseYt($('#vUrl').value);$('#vUrlInfo').textContent=id?'Video detectado: '+id:'Pegá un link de YouTube válido.';};
+$('#vUse').onclick=()=>{const id=parseYt($('#vUrl').value);if(!id){toast('Falta un link válido de YouTube.');return;}pickVideo(id);};
+$('#vQuery').addEventListener('keydown',e=>{if(e.key==='Enter')$('#vSearch').click();});
+$('#vSearch').onclick=()=>{const q=$('#vQuery').value.trim();if(!q){toast('Escribí el tema y el artista.');return;}if(pickMode==='sp'){searchSpotifyUi(q);return;}if(S.prefs.ytKey)searchVideos(q);else{window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(q),'_blank','noopener');$('#vUrlInfo').textContent='Se abrió YouTube en otra pestaña. Copiá el link del video y pegalo acá.';}};
+async function searchVideos(q){
+  const box=$('#vResults');box.innerHTML='<p class="muted small">Buscando…</p>';
+  try{
+    const key=S.prefs.ytKey;
+    const r=await fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&videoSyndicated=true&maxResults=10&q='+encodeURIComponent(q)+'&key='+encodeURIComponent(key));
+    const j=await r.json();
+    if(j.error){box.innerHTML='<p class="small" style="color:var(--bad)">Error de la API: '+esc(j.error.message||'')+'</p>';return;}
+    const items=(j.items||[]).filter(i=>i.id&&i.id.videoId);
+    if(!items.length){box.innerHTML='<p class="muted small">Sin resultados reproducibles. Probá otra búsqueda o pegá un link.</p>';return;}
+    box.innerHTML='';
+    items.forEach(i=>{const id=i.id.videoId;const b=document.createElement('button');b.className='song';b.innerHTML=`<img src="${esc((i.snippet.thumbnails.medium||i.snippet.thumbnails.default).url)}" alt=""><div style="min-width:0"><div class="t">${esc(decodeEntities(i.snippet.title))}</div><div class="muted small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i.snippet.channelTitle)}</div></div><div class="muted" style="font-size:20px">›</div>`;b.onclick=()=>pickVideo(id);box.appendChild(b);});
+  }catch(e){box.innerHTML='<p class="small" style="color:var(--bad)">No se pudo consultar YouTube ('+esc(e.message||'')+').</p>';}
+}
+function decodeEntities(s){const t=document.createElement('textarea');t.innerHTML=s;return t.value;}
+$('#btnPick').onclick=()=>openPicker(G.song.title+' '+G.song.artist,id=>setSongVideo(G.song,id));
+$('#btnPickFromErr').onclick=()=>openPicker(G.song.title+' '+G.song.artist,id=>setSongVideo(G.song,id));
+
+$('#btnHelp').onclick=()=>{$('#helpModal').hidden=false;};
+$('#btnCloseHelp').onclick=()=>{$('#helpModal').hidden=true;};
+$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.hidden=true;}));
+
+/* =====================================================================
+   ARRANQUE
+===================================================================== */
+load();buildPads();renderHome();resize();requestAnimationFrame(loop);
+spHandleRedirect().then(back=>{if(back&&songById(back)){S.prefs.src='sp';openSong(back,false);}else if(spTokens()&&!IS_FILE)spConnect();});
+</script>
+</body>
+</html>
